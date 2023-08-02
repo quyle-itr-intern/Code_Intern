@@ -21,14 +21,23 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define TEST_ADC				1
 
-#define TEST_ADC_POLLING		1
-#define TEST_ADC_DMA			0
+#define TEST_ADC_POLLING		0
+#define TEST_ADC_DMA			1
 #define TEST_ADC_TRIG_TIMER		0
 
 #define TEST_LED				0
 #define TEST_LED_FADE			0
+
+#define INCREMENT   ( 10 )
+#define DECREMENT   ( -10 )
+#define MAX_VOLTS   3.3
+#define VOLTS_RE	1.0
 
 /* USER CODE END Includes */
 
@@ -53,8 +62,10 @@ DMA_HandleTypeDef hdma_adc1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
-TIM_HandleTypeDef htim5;
+TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim8;
+
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -69,33 +80,56 @@ static void MX_TIM4_Init(void);
 static void MX_DMA_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_TIM5_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define INCREMENT   ( 10 )
-#define DECREMENT   ( -10 )
-#define MAX_VOLTS   3.3
-#define VOLTS_RE	1.0
+#define RANGE_PWM      (18000 - 1)
+uint8_t rx_data = 0;
+uint8_t count = 0;
+char data_buffer[5];
+char volts[5];
+float fvolts = 0;
+volatile float fadc_volts = 0;
+volatile float volts_check = 0;
+uint32_t u32dutycurrent = 0;
+volatile uint16_t adc_buf[2] = {0, 0};
+int8_t s8update = INCREMENT;
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(rx_data == '\n')
+	{
+		data_buffer[count++]='\n';
+		HAL_UART_Transmit(huart,data_buffer,count,HAL_MAX_DELAY);
+		strcpy(volts, data_buffer);
+		memset(data_buffer, 0, count);
+		count = 0;
+		fvolts = atof(volts);
+		fvolts = (fvolts/3.3)*RANGE_PWM;
+		__HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, (uint32_t) fvolts);
+	}
+	else
+	{
+		data_buffer[count++] = rx_data;
+	}
+	HAL_UART_Receive_IT(&huart2,&rx_data,1);
+}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //16Khz timer
 {
-   if( htim->Instance == TIM5 )
+   if( htim->Instance == TIM3 )
 	   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+   if( htim->Instance == TIM6 )
+   {
+	   volts_check = adc_buf[0]*1.0/4095.0 * 3.3;
+   }
 }
 
-uint32_t u32dutycurrent = 0;
-volatile float fadc_volts = 0;
-volatile uint16_t adc_buf[3] = {0};
-int8_t s8update = INCREMENT;
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-	fadc_volts = HAL_ADC_GetValue(&hadc1)*1.0/4095 * 3.3;
-}
 /* USER CODE END 0 */
 
 /**
@@ -132,18 +166,21 @@ int main(void)
   MX_DMA_Init();
   MX_TIM8_Init();
   MX_ADC1_Init();
-  MX_TIM5_Init();
+  MX_USART2_UART_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_Base_Start_IT(&htim6);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
   __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
-  float fvolts = (1.0/3.3)*999;
+  fvolts = (1.0/3.3)*RANGE_PWM;
   __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, (uint32_t) fvolts);
+  HAL_UART_Receive_IT(&huart2,&rx_data,1);
 
   #if defined TEST_ADC && ( TEST_ADC_DMA == 1U )
-  	  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 3);
+  	  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 2);
   #endif
 
   #if defined TEST_ADC && ( TEST_ADC_TRIG_TIMER == 1U )
@@ -180,8 +217,7 @@ int main(void)
   	#endif
 
 	#if defined TEST_ADC && ( TEST_ADC_DMA == 1U )
-		fadc_volts = adc_buf[0]*1.0/4095 * 3.3;
-		HAL_Delay(200);
+
 	#endif
   }
   /* USER CODE END 3 */
@@ -269,7 +305,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 3;
+  hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -281,7 +317,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -291,15 +327,6 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 2;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_2;
-  sConfig.Rank = 3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -381,33 +408,30 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 0 */
 
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
 
   /* USER CODE BEGIN TIM3_Init 1 */
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 900-1;
+  htim3.Init.Prescaler = 9000-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 10000-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 20;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -477,47 +501,40 @@ static void MX_TIM4_Init(void)
 }
 
 /**
-  * @brief TIM5 Initialization Function
+  * @brief TIM6 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM5_Init(void)
+static void MX_TIM6_Init(void)
 {
 
-  /* USER CODE BEGIN TIM5_Init 0 */
+  /* USER CODE BEGIN TIM6_Init 0 */
 
-  /* USER CODE END TIM5_Init 0 */
+  /* USER CODE END TIM6_Init 0 */
 
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE BEGIN TIM5_Init 1 */
+  /* USER CODE BEGIN TIM6_Init 1 */
 
-  /* USER CODE END TIM5_Init 1 */
-  htim5.Instance = TIM5;
-  htim5.Init.Prescaler = 9000-1;
-  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 10000-1;
-  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 9000-1;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 1000-1;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
     Error_Handler();
   }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM5_Init 2 */
+  /* USER CODE BEGIN TIM6_Init 2 */
 
-  /* USER CODE END TIM5_Init 2 */
+  /* USER CODE END TIM6_Init 2 */
 
 }
 
@@ -542,9 +559,9 @@ static void MX_TIM8_Init(void)
 
   /* USER CODE END TIM8_Init 1 */
   htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 18-1;
+  htim8.Init.Prescaler = 0;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim8.Init.Period = 1000-1;
+  htim8.Init.Period = 18000-1;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 0;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -597,6 +614,39 @@ static void MX_TIM8_Init(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -607,7 +657,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 14, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }

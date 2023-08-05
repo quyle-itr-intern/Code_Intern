@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   000136fe  00000000  00000000  0005921c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000deffe  00000000  00000000  0006c91a  2**0
+ 18 .debug_str    000df00a  00000000  00000000  0006c91a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  0014b918  2**0
+ 19 .comment      00000050  00000000  00000000  0014b924  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000050ac  00000000  00000000  0014b968  2**2
+ 20 .debug_frame  000050ac  00000000  00000000  0014b974  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1281,9 +1281,9 @@ Disassembly of section .text:
 	...
 
 08000fc0 <HAL_UART_RxCpltCallback>:
+volatile float fadc_volts = 0;
+volatile float volts_check = 0;
 uint32_t u32dutycurrent = 0;
-volatile uint16_t adc_buf[2] = {0, 0};
-int8_t s8update = INCREMENT;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -1308,7 +1308,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  8000fde:	4b36      	ldr	r3, [pc, #216]	; (80010b8 <HAL_UART_RxCpltCallback+0xf8>)
  8000fe0:	210a      	movs	r1, #10
  8000fe2:	5499      	strb	r1, [r3, r2]
-		HAL_UART_Transmit(huart,data_buffer,count,HAL_MAX_DELAY);
+		HAL_UART_Transmit(huart,(uint8_t *) data_buffer,count,HAL_MAX_DELAY);
  8000fe4:	4b33      	ldr	r3, [pc, #204]	; (80010b4 <HAL_UART_RxCpltCallback+0xf4>)
  8000fe6:	781b      	ldrb	r3, [r3, #0]
  8000fe8:	b29a      	uxth	r2, r3
@@ -1403,11 +1403,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  80010a4:	400a6666 	.word	0x400a6666
  80010a8:	00000000 	.word	0x00000000
  80010ac:	40d193c0 	.word	0x40d193c0
- 80010b0:	20000450 	.word	0x20000450
- 80010b4:	20000451 	.word	0x20000451
- 80010b8:	20000454 	.word	0x20000454
- 80010bc:	2000045c 	.word	0x2000045c
- 80010c0:	20000464 	.word	0x20000464
+ 80010b0:	20000460 	.word	0x20000460
+ 80010b4:	20000461 	.word	0x20000461
+ 80010b8:	20000450 	.word	0x20000450
+ 80010bc:	20000458 	.word	0x20000458
+ 80010c0:	20000468 	.word	0x20000468
  80010c4:	200003c4 	.word	0x200003c4
  80010c8:	2000040c 	.word	0x2000040c
  80010cc:	00000000 	.word	0x00000000
@@ -1475,8 +1475,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //16Khz timer
  8001148:	40000400 	.word	0x40000400
  800114c:	40020800 	.word	0x40020800
  8001150:	40001000 	.word	0x40001000
- 8001154:	2000046c 	.word	0x2000046c
- 8001158:	20000468 	.word	0x20000468
+ 8001154:	20000464 	.word	0x20000464
+ 8001158:	2000046c 	.word	0x2000046c
 
 0800115c <main>:
 /**
@@ -1543,28 +1543,28 @@ int main(void)
  80011a8:	2100      	movs	r1, #0
  80011aa:	4813      	ldr	r0, [pc, #76]	; (80011f8 <main+0x9c>)
  80011ac:	f003 f9ea 	bl	8004584 <HAL_TIM_PWM_Start>
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
- 80011b0:	4b0f      	ldr	r3, [pc, #60]	; (80011f0 <main+0x94>)
- 80011b2:	681b      	ldr	r3, [r3, #0]
- 80011b4:	2200      	movs	r2, #0
- 80011b6:	635a      	str	r2, [r3, #52]	; 0x34
-  fvolts = (1.0/3.3)*RANGE_PWM;
- 80011b8:	4b10      	ldr	r3, [pc, #64]	; (80011fc <main+0xa0>)
- 80011ba:	4a11      	ldr	r2, [pc, #68]	; (8001200 <main+0xa4>)
- 80011bc:	601a      	str	r2, [r3, #0]
-  __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, (uint32_t) fvolts);
- 80011be:	4b0f      	ldr	r3, [pc, #60]	; (80011fc <main+0xa0>)
- 80011c0:	edd3 7a00 	vldr	s15, [r3]
- 80011c4:	4b0c      	ldr	r3, [pc, #48]	; (80011f8 <main+0x9c>)
- 80011c6:	681b      	ldr	r3, [r3, #0]
- 80011c8:	eefc 7ae7 	vcvt.u32.f32	s15, s15
- 80011cc:	ee17 2a90 	vmov	r2, s15
- 80011d0:	635a      	str	r2, [r3, #52]	; 0x34
   HAL_UART_Receive_IT(&huart2,&rx_data,1);
- 80011d2:	2201      	movs	r2, #1
- 80011d4:	490b      	ldr	r1, [pc, #44]	; (8001204 <main+0xa8>)
- 80011d6:	480c      	ldr	r0, [pc, #48]	; (8001208 <main+0xac>)
- 80011d8:	f004 fa27 	bl	800562a <HAL_UART_Receive_IT>
+ 80011b0:	2201      	movs	r2, #1
+ 80011b2:	4912      	ldr	r1, [pc, #72]	; (80011fc <main+0xa0>)
+ 80011b4:	4812      	ldr	r0, [pc, #72]	; (8001200 <main+0xa4>)
+ 80011b6:	f004 fa38 	bl	800562a <HAL_UART_Receive_IT>
+  fvolts = (1.0/3.3)*RANGE_PWM;
+ 80011ba:	4b12      	ldr	r3, [pc, #72]	; (8001204 <main+0xa8>)
+ 80011bc:	4a12      	ldr	r2, [pc, #72]	; (8001208 <main+0xac>)
+ 80011be:	601a      	str	r2, [r3, #0]
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
+ 80011c0:	4b0b      	ldr	r3, [pc, #44]	; (80011f0 <main+0x94>)
+ 80011c2:	681b      	ldr	r3, [r3, #0]
+ 80011c4:	2200      	movs	r2, #0
+ 80011c6:	635a      	str	r2, [r3, #52]	; 0x34
+  __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, (uint32_t) fvolts);
+ 80011c8:	4b0e      	ldr	r3, [pc, #56]	; (8001204 <main+0xa8>)
+ 80011ca:	edd3 7a00 	vldr	s15, [r3]
+ 80011ce:	4b0a      	ldr	r3, [pc, #40]	; (80011f8 <main+0x9c>)
+ 80011d0:	681b      	ldr	r3, [r3, #0]
+ 80011d2:	eefc 7ae7 	vcvt.u32.f32	s15, s15
+ 80011d6:	ee17 2a90 	vmov	r2, s15
+ 80011da:	635a      	str	r2, [r3, #52]	; 0x34
 
   #if defined TEST_ADC && ( TEST_ADC_DMA == 1U )
   	  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 2);
@@ -1584,11 +1584,11 @@ int main(void)
  80011f0:	20000334 	.word	0x20000334
  80011f4:	200002a4 	.word	0x200002a4
  80011f8:	200003c4 	.word	0x200003c4
- 80011fc:	20000464 	.word	0x20000464
- 8001200:	45aa71f0 	.word	0x45aa71f0
- 8001204:	20000450 	.word	0x20000450
- 8001208:	2000040c 	.word	0x2000040c
- 800120c:	2000046c 	.word	0x2000046c
+ 80011fc:	20000460 	.word	0x20000460
+ 8001200:	2000040c 	.word	0x2000040c
+ 8001204:	20000468 	.word	0x20000468
+ 8001208:	45aa71f0 	.word	0x45aa71f0
+ 800120c:	20000464 	.word	0x20000464
  8001210:	200001fc 	.word	0x200001fc
 
 08001214 <SystemClock_Config>:

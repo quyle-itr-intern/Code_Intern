@@ -1291,7 +1291,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  8000fc2:	b082      	sub	sp, #8
  8000fc4:	af00      	add	r7, sp, #0
  8000fc6:	6078      	str	r0, [r7, #4]
-
 	if(rx_data == '\n')
  8000fc8:	4b39      	ldr	r3, [pc, #228]	; (80010b0 <HAL_UART_RxCpltCallback+0xf0>)
  8000fca:	781b      	ldrb	r3, [r3, #0]

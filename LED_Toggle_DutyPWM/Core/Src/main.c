@@ -25,19 +25,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TEST_ADC				1
+#define TEST_ADC				(1)
+#define TEST_ADC_POLLING		(0)
+#define TEST_ADC_DMA			(1)
+#define TEST_ADC_TRIG_TIMER		(0)
+#define TEST_LED				(0)
+#define TEST_LED_FADE			(0)
 
-#define TEST_ADC_POLLING		0
-#define TEST_ADC_DMA			1
-#define TEST_ADC_TRIG_TIMER		0
-
-#define TEST_LED				0
-#define TEST_LED_FADE			0
-
-#define INCREMENT   ( 10 )
-#define DECREMENT   ( -10 )
-#define MAX_VOLTS   3.3
-#define VOLTS_RE	1.0
+#define INCREMENT   			(10)
+#define DECREMENT   			(-10)
+#define MAX_VOLTS   			(3.3)
+#define VOLTS_RE				(1.0)
+#define RANGE_PWM      			(18000 - 1)
 
 /* USER CODE END Includes */
 
@@ -88,24 +87,23 @@ static void MX_TIM6_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define RANGE_PWM      (18000 - 1)
+char data_buffer[8];
+char volts[8];
 uint8_t rx_data = 0;
 uint8_t count = 0;
-char data_buffer[5];
-char volts[5];
+int8_t s8update = INCREMENT;
+volatile uint16_t adc_buf[2] = {0, 0};
 float fvolts = 0;
 volatile float fadc_volts = 0;
 volatile float volts_check = 0;
 uint32_t u32dutycurrent = 0;
-volatile uint16_t adc_buf[2] = {0, 0};
-int8_t s8update = INCREMENT;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(rx_data == '\n')
 	{
 		data_buffer[count++]='\n';
-		HAL_UART_Transmit(huart,data_buffer,count,HAL_MAX_DELAY);
+		HAL_UART_Transmit(huart,(uint8_t *) data_buffer,count,HAL_MAX_DELAY);
 		strcpy(volts, data_buffer);
 		memset(data_buffer, 0, count);
 		count = 0;
@@ -174,10 +172,10 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
-  fvolts = (1.0/3.3)*RANGE_PWM;
-  __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, (uint32_t) fvolts);
   HAL_UART_Receive_IT(&huart2,&rx_data,1);
+  fvolts = (1.0/3.3)*RANGE_PWM;
+  __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 0);
+  __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, (uint32_t) fvolts);
 
   #if defined TEST_ADC && ( TEST_ADC_DMA == 1U )
   	  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 2);

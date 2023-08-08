@@ -1,0 +1,5 @@
+@startuml
+
+Bob -> Alice : Request
+Alice -> Bob : Response
+@enduml

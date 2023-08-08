@@ -23,23 +23,37 @@
 #define OTA_RECIEVE_TIMEOUT_S   5
 
 /* To change these values you must change it too in NodeMCU code*/
+#define OTA_UPDATE_FW	        'U'
+#define OTA_CHECK_SIZE_FLASH	'S'
+
 #define OTA_DATA_START_CHAR     'X'
 #define OTA_LINE_BREAK_CHAR     'Y'
 #define OTA_DATA_END_CHAR       'Z'
 #define OTA_READ_CONFIRM_CHAR   (uint8_t*) "R"
 #define OTA_CANCEL_UPDATE		(uint8_t*) "C"
 
-typedef void (*LVQ_USART_Callback_t) (uint8_t);
+typedef enum
+{
+	START_CODE  = 0U, /* Start code 	*/
+	BYTE_COUNT  = 1U, /*  Byte count 	*/
+	ADDRESS     = 2U, /*  Address 		*/
+	RECORD_TYPE = 3U, /* Record type 	*/
+	DATA        = 4U, /* Data 			*/
+	CHECKSUM    = 5U, /* Checksum 		*/
+	DONE        = 6U  /* work is done 	*/
+}
+field_hex_files_t;
 
-void LVQ_USART_Set_Callback(void* cb);
+typedef enum
+{
+	STATE_ERRORS = 0U,    /* There is a error */
+	STATE_NO_ERRORS,      /* There is no errors */
+	STATE_PENDING,        /* Working is pending  */
+	STATE_ERRORS_TIMEOUT  /* There is a error due to timeout */
+}
+status_process_t;
 
-void LVQ_OTA_Init(void);
-void LVQ_OTA_Run(void);
-
-void LVQ_OTA_CharReceived(uint8_t rec);
-void LVQ_OTA_CheckUpdate(uint8_t rec);
-
-void LVQ_OTA_SetCallback_UpdateFirmware(void);
-void LVQ_OTA_SetCallback_CheckUpdateFirmware(void);
+void start_up_bootloader(void);
+void start_up_firmware_update(void);
 
 #endif

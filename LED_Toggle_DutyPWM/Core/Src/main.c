@@ -21,9 +21,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lvq_stm32f4_ota.h"
+#include "cbuffer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define TEST_ADC				(1)
 #define TEST_ADC_POLLING		(0)
@@ -64,6 +67,7 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim8;
 
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -87,6 +91,9 @@ static void MX_TIM6_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+volatile const uint32_t checkupdate[20000] = {0};
+
 char data_buffer[8];
 char volts[8];
 uint8_t rx_data = 0;
@@ -185,6 +192,14 @@ int main(void)
   	HAL_ADC_Start_IT(&hadc1);
   	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
   #endif
+
+
+  uint8_t buffer[10] = { 0 };
+  memset(buffer, 0, 10);
+  cbuffer_t cb;
+  cb_init(&cb, buffer, 10);
+
+  checkupdate[0];
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -688,6 +703,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
 
 /* USER CODE END 4 */
 

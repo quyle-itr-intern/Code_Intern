@@ -21,7 +21,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lvq_stm32f4_flash.h"
 #include "lvq_stm32f4_ota.h"
 /* USER CODE END Includes */
 
@@ -58,12 +57,7 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#define ADDRESS_FIRMWARE_APPLICATION 0x08008000U
 
-extern uint8_t FlagOTA;
-volatile uint32_t TimeOut = 3000;
-extern uint32_t SizeCurrent;
-volatile char Send[30];
 /* USER CODE END 0 */
 
 /**
@@ -97,35 +91,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  LVQ_OTA_Init();
-  LVQ_OTA_SetCallback_CheckUpdateFirmware();
-
-	uwTick = 0;
-	while( HAL_GetTick() < TimeOut  )
-	{
-		if( FlagOTA )
-		{
-				uint8_t StartSector = LVQ_GetSectorFromAddress(ADDRESS_FIRMWARE_APPLICATION);
-				uint8_t EndSector = LVQ_GetSectorFromAddress(ADDRESS_FIRMWARE_APPLICATION + SizeCurrent);
-				uint8_t NumberSector = EndSector - StartSector + 1;
-
-				/* Erase sector for write data */
-				for(uint8_t i = 0; i < NumberSector; i++)
-				{
-						LVQ_Flash_Erase(LVQ_GetAddressFromSector(StartSector));;
-						StartSector++;
-				}
-				LVQ_OTA_SetCallback_UpdateFirmware();
-				LVQ_OTA_Run();
-		}
-	}
-
-  SCB->SHCSR &= ~(SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk);
-  __set_MSP(*((volatile uint32_t*) ADDRESS_FIRMWARE_APPLICATION));
-  uint32_t u32JumpAddress = *( (volatile uint32_t*) (ADDRESS_FIRMWARE_APPLICATION + 4) );
-  void (*reset_handler) (void) = (void *) u32JumpAddress;
-  reset_handler();
+  start_up_bootloader();
+  start_up_firmware_update();
   /* USER CODE END 2 */
 
   /* Infinite loop */

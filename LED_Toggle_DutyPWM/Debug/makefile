@@ -52,6 +52,9 @@ default.size.stdout \
 OBJDUMP_LIST += \
 LED_Toggle_DutyPWM.list \
 
+OBJCOPY_HEX += \
+LED_Toggle_DutyPWM.hex \
+
 
 # All Target
 all: main-build
@@ -75,12 +78,17 @@ LED_Toggle_DutyPWM.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DE
 	@echo 'Finished building: $@'
 	@echo ' '
 
+LED_Toggle_DutyPWM.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "LED_Toggle_DutyPWM.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) LED_Toggle_DutyPWM.elf LED_Toggle_DutyPWM.list LED_Toggle_DutyPWM.map default.size.stdout
+	-$(RM) LED_Toggle_DutyPWM.elf LED_Toggle_DutyPWM.hex LED_Toggle_DutyPWM.list LED_Toggle_DutyPWM.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

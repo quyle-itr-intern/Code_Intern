@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "e:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj": {}
+    "E:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj": {}
   },
   "projects": {
-    "e:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj": {
+    "E:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "e:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj",
+        "projectUniqueName": "E:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj",
         "projectName": "BOOTLOADER",
-        "projectPath": "e:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj",
+        "projectPath": "E:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\BOOTLOADER.csproj",
         "packagesPath": "C:\\Users\\levan\\.nuget\\packages\\",
-        "outputPath": "e:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\obj\\",
+        "outputPath": "E:\\Downloads\\INTERN\\CODE\\07-2023-itr-intern-group-2\\BOOTLOADER\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

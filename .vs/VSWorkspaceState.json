@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\BOOTLOADER"
   ],
-  "SelectedNode": "\\BOOTLOADER.sln",
+  "SelectedNode": "\\BOOTLOADER\\BOOTLOADER.sln",
   "PreviewInSolutionExplorer": false
 }

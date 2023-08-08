@@ -103,6 +103,7 @@ namespace BOOTLOADER
             baudrate.Items.Add("56000");
             baudrate.Items.Add("57600");
             baudrate.Items.Add("115200");
+            baudrate.SelectedIndex = 7;
         }
 
         private async void Send_Click(object sender, EventArgs e)
@@ -118,8 +119,24 @@ namespace BOOTLOADER
                     int rows = txtSend.Lines.Length;
 
                     UInt32 sizeCode = ReadSizeFlash(pathfilehex);
-                    Data_Receive = ' ';
 
+                    CountOut = 0;
+                    Data_Receive = ' ';
+                    while (Data_Receive != 'R')
+                    {
+                        port.Write("U");
+                        await Task.Delay(500);
+                        CountOut++;
+                        if (CountOut == 5)
+                        {
+                            string title = "Load Flash";
+                            MessageBox.Show("STM32 Bootloader Not Response Update !!! ", title);
+                            goto end;
+                        }
+                    }
+
+                    CountOut = 0;
+                    Data_Receive = ' ';
                     port.Write("S" + sizeCode + "\n");
                     txtReceive.Clear();
 
@@ -127,31 +144,16 @@ namespace BOOTLOADER
                     txtReceive.Text += "Check size flash memory update firmware\r\n";
                     while (Data_Receive != 'R')
                     {
-                        Thread.Sleep(5);
+                        Thread.Sleep(1);
                         CountOut++;
-                        if ((CountOut == 200))
+                        if ((CountOut == 3000))
                         {
                             string title = "Load Flash";
-                            MessageBox.Show("STM32 Not Response Size !!! " + Data_Receive, title);
+                            MessageBox.Show("STM32 Bootloader Not Response Size !!! " + Data_Receive, title);
                             goto end;
                         }
                     }
                     txtReceive.Text += "Size flash memory ok for update firmware\r\n";
-
-                    CountOut = 0;
-                    Data_Receive = ' ';
-                    while (Data_Receive != 'R')
-                    {
-                        port.Write("U");
-                        await Task.Delay(10);
-                        CountOut++;
-                        if (CountOut == 500)
-                        {
-                            string title = "Load Flash";
-                            MessageBox.Show("STM32 Not Response Update!!! ", title);
-                            goto end;
-                        }
-                    }
 
                     Data_Receive = ' ';
                     CountOut = 0;
@@ -159,38 +161,62 @@ namespace BOOTLOADER
                     {
                         port.Write("X");
                         await Task.Delay(1000);
+                        CountOut++;
+                        if( CountOut == 5)
+                        {
+                            MessageBox.Show("STM32 Bootloader Start Fail !!! ", "Load Flash");
+                            goto end;
+                        }    
                     }
 
-                    string[] data_line = new string[50];
-                    char[] result = new char[1];
+                    progressFlash.Maximum = rows;
+                    progressFlash.Step = 1;
+                    progressFlash.Value = 0;
+                    string data_line;
                     for (int r = 1; r < rows; r++)
                     {
-                        port.Write(read.ReadLine());
-                        port.Write("Y");
+                        progressFlash.PerformStep();
+                        Data_Receive = ' ';
+                        data_line = read.ReadLine();
+                        port.Write(data_line);
+                        //port.Write("Y");
 
-                        TimerOut = 200;
+                        TimerOut = 2000;
                         while ((Data_Receive != 'R') && (TimerOut > 0))
                         {
-                            await Task.Delay(5);
+                            await Task.Delay(1);
                             TimerOut--;
+                            if (Data_Receive == 'E')
+                            {
+                                Data_Receive = ' ';
+                                TimerOut = 2000;
+                                port.Write(data_line);
+                            }
                         }
                         if (TimerOut == 0)
                         {
                             string title = "Load Flash";
-                            MessageBox.Show("STM32 BOOTLOADER Not Response !!! " + pathfilehex, title);
+                            MessageBox.Show("STM32 Bootloader Not Response in Process !!! " + pathfilehex, title);
                             goto end;
                         }
-                        // "Loading..." + Math.Round(((r + 1) * 1.0 / rows) * 100, 2) + " %\r\n");
                         Data_Receive = ' ';
                     }
+                    CountOut = 0;
                     Data_Receive = ' ';
                     port.Write("Z");
                     while (Data_Receive != 'R')
                     {
                         await Task.Delay(10);
+                        CountOut++;
+                        if (CountOut == 100)
+                        {
+                            MessageBox.Show("STM32 Bootloader Not Response End !!! ", "Load Flash");
+                        }
                     }
+                    progressFlash.PerformStep();
+                    await Task.Delay(550);
                     txtReceive.Text += "Flash firmware to memory successfully !!!\r\n";
-                    MessageBox.Show("STM32 BOOTLOADER Success !!! ", "Load Flash");
+                    MessageBox.Show("STM32 Bootloader Success !!! ", "Load Flash");
                 }
             end:;
                 btnSend.Enabled = true;
@@ -201,7 +227,6 @@ namespace BOOTLOADER
                 MessageBox.Show("Please select COMx port to flash !!!", title);
             }
         }
-
         private void btnOpen_Click(object sender, EventArgs e)
         {
             btnOpen.Enabled = false;
@@ -218,7 +243,7 @@ namespace BOOTLOADER
             }
             catch (Exception err)
             {
-                MessageBox.Show(err.Message, "Error !!!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(err.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnClose.Enabled = false;
                 btnOpen.Enabled = true;
             }
@@ -269,6 +294,12 @@ namespace BOOTLOADER
                     }
                 }
             }
+        }
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            comPort.Items.Clear();
+            string[] ports = SerialPort.GetPortNames();
+            comPort.Items.AddRange(ports);
         }
     }
 }

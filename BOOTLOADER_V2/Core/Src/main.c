@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lvq_stm32f4_ota.h"
+#include "app_ota.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,9 +94,10 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  start_up_bootloader();
 
-  start_up_firmware_update();
+  app_ota_start_up_bootloader();
+  app_ota_jump_to_firmware();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */

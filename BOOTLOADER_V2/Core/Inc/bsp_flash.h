@@ -61,8 +61,7 @@ typedef enum
 {
   bsp_flash_status_errors = 0,
   bsp_flash_status_ok,
-} 
-bsp_flash_status_t;
+} bsp_flash_status_t;
 
 /**
  * @brief  flash unlock to operate with flash memory
@@ -210,6 +209,16 @@ bsp_flash_status_t bsp_flash_write_multi_float(uint32_t start_address, float *fl
  *  - 1: bsp_flash_status_ok
  */
 bsp_flash_status_t bsp_flash_read_multi_float(uint32_t start_address, float *float_buffer_write, uint32_t length);
+
+#pragma pack(1)
+typedef struct
+{
+  uint8_t no;
+  uint8_t ssid[25];
+  uint8_t pass[25];
+  uint8_t id;
+} wifi_info_t;
+#pragma pack()
 
 /**
  * @brief  write struct data to flash memory

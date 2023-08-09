@@ -44,27 +44,23 @@ uint32_t size_current;
 uint8_t  rx_buffer[50];
 uint8_t *buffer_save_data_handle;
 
-volatile uint32_t size_data_firmware   = 0;
-volatile uint16_t data_write_flash[50] = { 0 }; /* Array to store the data of line to pass it to Flash Writer */
-volatile uint32_t address_write_flash;          /* Pointer to store the address in to write */
-
-void app_ota_get_high_address(app_ota_hex_form_data_t hex_data)
-{
-  uint32_t address = 0;
-  address |= hex_data.data[0] << 8 | hex_data.data[1];
-  address_write_flash = 0x08000000 | (address << 16); /* Address Save Firmware Update */
-}
+volatile uint32_t size_data_firmware = 0;
+volatile uint32_t address_write_flash; /* Pointer to store the address in to write */
 
 void app_ota_write_flash_memory(app_ota_hex_form_data_t *hex_data)
 {
-  uint8_t data_count, i;
-  uint8_t counter_index = 0;
+  uint8_t  data_count, i;
+  uint8_t  counter_index       = 0;
+  uint16_t data_write_flash[8] = { 0 };
 
   switch (hex_data->record_type)
   {
   case 4: /* Extended Linear Address Record: used to identify the extended linear address  */
   {
-    app_ota_get_high_address(*hex_data);
+    uint32_t address = 0;
+    address |= hex_data->data[0] << 8 | hex_data->data[1];
+    /* Address save firmware update */
+    address_write_flash = 0x08000000 | (address << 16);
     break;
   }
   case 5: /* Start Linear Address Record: the address where the program starts to run      */
@@ -73,28 +69,29 @@ void app_ota_write_flash_memory(app_ota_hex_form_data_t *hex_data)
   }
   case 0: /* Data Rrecord: used to record data, most records of HEX files are data records */
   {
-    /* Get Character Count */
+    /* get character count */
     data_count = hex_data->byte_count;
     size_data_firmware += data_count;
 
-    /* Set full address */
+    /* set full address */
     address_write_flash = address_write_flash & 0xFFFF0000;
     address_write_flash = address_write_flash | (hex_data->address[0] << 8) | (hex_data->address[1]);
 
-    /* Check address wite flash data */
+    /* check address wite flash data */
     if (address_write_flash < ADDRESS_FIRMWARE_APPLICATION)
     {
       address_write_flash = 0;
       return;
     }
 
-    /* Get the data of the record */
+    /* get the data of the record */
     for (i = 0; i < data_count; i += 2)
     {
       data_write_flash[counter_index] = (hex_data->data[i + 1] << 8) | (hex_data->data[i]);
       counter_index++;
     }
 
+    /* count data old or even */
     if (data_count % 2 != 0)
     {
       data_write_flash[counter_index] = 0xFF00 | (hex_data->data[data_count - 1]);
@@ -110,25 +107,25 @@ void app_ota_write_flash_memory(app_ota_hex_form_data_t *hex_data)
 
 void app_ota_start_up_bootloader(void)
 {
-  HAL_DMA_UnRegisterCallback(&hdma_usart1_rx, HAL_DMA_XFER_HALFCPLT_CB_ID);
-  if (HAL_OK != HAL_UARTEx_ReceiveToIdle_DMA(&huart1, data_receive_dma, RX_BUFFER_SIZE))
-  {
-    Error_Handler();
-  }
+  bsp_uart_dma_unregister_callback(&hdma_usart1_rx, HAL_DMA_XFER_HALFCPLT_CB_ID);
+  /* receive data uart dma */
+  bsp_uart_receive_to_idle_dma(&huart1, data_receive_dma, RX_BUFFER_SIZE);
 
   buffer_save_data_handle = rx_buffer;
+  uint32_t time_last      = HAL_GetTick();
 
-  uint32_t time_last = HAL_GetTick();
+  /* wait for update firmware */
   while (HAL_GetTick() - time_last < 3000)
   {
     if (flag_ota_update == TRUE && flag_size_flash == TRUE)
     {
-      flag_earse_ok         = FALSE;
+      flag_earse_ok = FALSE;
+      /* caculation number sector */
       uint8_t start_sector  = bsp_get_sector_from_address(ADDRESS_FIRMWARE_APPLICATION);
       uint8_t end_sector    = bsp_get_sector_from_address(ADDRESS_FIRMWARE_APPLICATION + size_current);
       uint8_t number_sector = end_sector - start_sector + 1;
 
-      /* Erase sector for write data */
+      /* erase sector for write data */
       for (uint8_t i = 0; i < number_sector; i++)
       {
         bsp_flash_erase(bsp_get_address_from_sector(start_sector));
@@ -154,8 +151,8 @@ void app_ota_jump_to_firmware(void)
 
   SCB->SHCSR &= ~(SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk);
   __set_MSP(*((volatile uint32_t *) ADDRESS_FIRMWARE_APPLICATION));
-  uint32_t u32JumpAddress     = *((volatile uint32_t *) (ADDRESS_FIRMWARE_APPLICATION + 4));
-  void (*reset_handler)(void) = (void *) u32JumpAddress;
+  uint32_t jump_address       = *((volatile uint32_t *) (ADDRESS_FIRMWARE_APPLICATION + 4));
+  void (*reset_handler)(void) = (void *) jump_address;
   reset_handler();
 }
 
@@ -164,7 +161,7 @@ void app_ota_parse_element(uint8_t *des, uint8_t *buff, uint8_t length)
   uint8_t count_array = 0U;
   uint8_t buffer_temp[32];
 
-  /* Convert data string to data hex and save to des buffer*/
+  /* convert data string to data hex and save to des buffer*/
   for (uint8_t count = 0U; count < length; count++)
   {
     if (buff[count] >= '0' && buff[count] <= '9')
@@ -245,6 +242,7 @@ uint8_t app_ota_handle_data_receive(app_ota_hex_form_data_t *hex_data, uint8_t *
     }
     case DONE:
     {
+      /* check sum data hex */
       cal_check_sum = hex_data->byte_count + hex_data->address[0] + hex_data->address[1] + hex_data->record_type;
       for (count = 0; count < hex_data->byte_count; count++)
       {
@@ -268,12 +266,15 @@ void app_ota_handle_data_receive_dma(UART_HandleTypeDef *huart, uint8_t *data, u
   uint8_t                *buff = data;
   switch (buff[0])
   {
+  /* flag ota update */
   case APP_OTA_UPDATE_FW:
   {
     flag_ota_update = TRUE;
-    HAL_UART_Transmit(USART_UD, APP_OTA_READ_CONFIRM_CHAR, 1, 10);
+    /* send confirm character */
+    bsp_uart_printf(USART_UD, APP_OTA_READ_CONFIRM_CHAR);
     break;
   }
+  /* flag check size flash memory */
   case APP_OTA_CHECK_SIZE_FLASH:
   {
     size_current  = 0;
@@ -284,41 +285,53 @@ void app_ota_handle_data_receive_dma(UART_HandleTypeDef *huart, uint8_t *data, u
       index++;
     }
     if (size_current > max_size_flash)
-      HAL_UART_Transmit(USART_UD, APP_OTA_CANCEL_UPDATE, 1, 10);
+      /* send char cancel update because over size flash memory */
+      bsp_uart_printf(USART_UD, APP_OTA_CANCEL_UPDATE);
     else
     {
-      HAL_UART_Transmit(USART_UD, APP_OTA_READ_CONFIRM_CHAR, 1, 10);
+      /* send confirm character */
+      bsp_uart_printf(USART_UD, APP_OTA_READ_CONFIRM_CHAR);
       flag_size_flash = TRUE;
     }
     break;
   }
+  /* flag ota start */
   case APP_OTA_UPDATE_START:
   {
     if (flag_earse_ok == TRUE)
     {
       flag_earse_ok = FALSE;
-      HAL_UART_Transmit(USART_UD, APP_OTA_READ_CONFIRM_CHAR, 1, 10);
+      /* send confirm character */
+      bsp_uart_printf(USART_UD, APP_OTA_READ_CONFIRM_CHAR);
     }
     break;
   }
+  /* ota data received */
   case ':':
   {
+    /* check data correct ? */
     if ((app_ota_handle_data_receive(&hex_data, buff, size) == STATE_NO_ERRORS) && flag_ota_update && flag_size_flash)
     {
+      /* write data receive to flash memory */
       app_ota_write_flash_memory(&hex_data);
       if (!address_write_flash)
-        HAL_UART_Transmit(USART_UD, APP_OTA_RESEND_DATA, 1, 10);
+        /* address write memory errors */
+        bsp_uart_printf(USART_UD, APP_OTA_CANCEL_UPDATE);
       else
-        HAL_UART_Transmit(USART_UD, APP_OTA_READ_CONFIRM_CHAR, 1, 10);
+        /* data write successful */
+        bsp_uart_printf(USART_UD, APP_OTA_READ_CONFIRM_CHAR);
     }
     else
-      HAL_UART_Transmit(USART_UD, APP_OTA_RESEND_DATA, 1, 10);
+      /* data receive miss or error */
+      bsp_uart_printf(USART_UD, APP_OTA_RESEND_DATA);
     break;
   }
+  /* flag ota firmware update complete */
   case APP_OTA_UPDATE_FW_COMPLETE:
   {
     flag_ota_complete = TRUE;
-    HAL_UART_Transmit(USART_UD, APP_OTA_READ_CONFIRM_CHAR, 1, 10);
+    /* send confirm character */
+    bsp_uart_printf(USART_UD, APP_OTA_READ_CONFIRM_CHAR);
     break;
   }
   default: break;
@@ -331,11 +344,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
   uint16_t number_char_receive;
   uint8_t  check_data_full[50];
 
+  /* read data receive from dma */
   if ((huart->Instance == USART1))
   {
     static uint16_t old_pos = 0;
     uint16_t        i;
 
+    /* check data when dma transfer complete */
     if (g_flag_cplt_dma)
     {
       g_flag_cplt_dma = FALSE;
@@ -344,17 +359,21 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
         check_data_full[i] = data_receive_dma[old_pos + i];
       }
       app_ota_hex_form_data_t hex_data;
+      /* check data form correct */
       if (app_ota_handle_data_receive(&hex_data, check_data_full, size - old_pos) == STATE_ERRORS)
         return;
     }
 
+    /* check if new data */
     if (size != old_pos)
     {
+      /* check wraps around index data */
       if (size > old_pos)
       {
         number_char_receive = size - old_pos;
         for (i = 0; i < number_char_receive; i++)
         {
+          /* read data from buffer dma */
           buffer_save_data_handle[i] = data_receive_dma[old_pos + i];
         }
       }
@@ -363,12 +382,14 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
         number_char_receive = RX_BUFFER_SIZE - old_pos;
         for (i = 0; i < number_char_receive; i++)
         {
+          /* read data from buffer dma */
           buffer_save_data_handle[i] = data_receive_dma[old_pos + i];
         }
         if (size > 0)
         {
           for (i = 0; i < size; i++)
           {
+            /* read data from buffer dma */
             buffer_save_data_handle[number_char_receive + i] = data_receive_dma[i];
           }
           number_char_receive += size;
@@ -376,9 +397,10 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
       }
 
 #ifdef DEBUG
-      HAL_UART_Transmit(&huart2, buffer_save_data_handle, number_char_receive, 100);
-      HAL_UART_Transmit(&huart2, (uint8_t *) "\n", 1, 100);
+      bsp_uart_printf(&huart2, buffer_save_data_handle);
+      bsp_uart_printf(&huart2, (uint8_t *) "\n");
 #endif
+      /* handle data read */
       app_ota_handle_data_receive_dma(huart, buffer_save_data_handle, number_char_receive);
     }
     old_pos = size;

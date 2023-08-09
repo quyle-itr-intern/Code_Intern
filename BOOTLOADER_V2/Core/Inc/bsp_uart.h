@@ -22,12 +22,8 @@
  * @param[out]    data       	data transfer through uart
  *
  * @return
- *  
+ *
  */
-void bsp_uart_printf(UART_HandleTypeDef *huart, uint8_t* data);
-
-
-
-
+void bsp_uart_printf(UART_HandleTypeDef *huart, uint8_t *data);
 
 #endif

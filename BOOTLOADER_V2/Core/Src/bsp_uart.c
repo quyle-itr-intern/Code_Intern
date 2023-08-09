@@ -10,15 +10,7 @@
 
 #include "bsp_uart.h"
 
-void bsp_uart_printf(UART_HandleTypeDef *huart, uint8_t* string)
+void bsp_uart_printf(UART_HandleTypeDef *huart, uint8_t *string)
 {
-    HAL_UART_Transmit(huart, string, sizeof(string), TIME_OUT_TRANSMIT_UART);
+  HAL_UART_Transmit(huart, string, sizeof(string), TIME_OUT_TRANSMIT_UART);
 }
-
-
-
-
-
-
-
-

@@ -52,6 +52,9 @@ default.size.stdout \
 OBJDUMP_LIST += \
 ADC_TRIGGER_TIMER.list \
 
+OBJCOPY_HEX += \
+ADC_TRIGGER_TIMER.hex \
+
 
 # All Target
 all: main-build
@@ -75,12 +78,17 @@ ADC_TRIGGER_TIMER.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEP
 	@echo 'Finished building: $@'
 	@echo ' '
 
+ADC_TRIGGER_TIMER.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "ADC_TRIGGER_TIMER.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) ADC_TRIGGER_TIMER.elf ADC_TRIGGER_TIMER.list ADC_TRIGGER_TIMER.map default.size.stdout
+	-$(RM) ADC_TRIGGER_TIMER.elf ADC_TRIGGER_TIMER.hex ADC_TRIGGER_TIMER.list ADC_TRIGGER_TIMER.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

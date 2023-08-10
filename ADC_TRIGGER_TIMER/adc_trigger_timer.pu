@@ -1,0 +1,26 @@
+@startuml adc trigger adc
+
+== adc init ==
+
+main --> driver_adc: ""init module adc""
+driver_adc --> bsp_adc: ""init adc""
+bsp_adc --> HAL: ""hal init adc""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== adc read volts ==
+main -> driver_adc: ""read adc volts""
+driver_adc --> bsp_adc: ""read adc value""
+bsp_adc --> HAL: ""hal read adc""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== adc set volts ==
+main -> driver_adc: ""read set volts""
+driver_adc --> bsp_adc: ""set adc value""
+bsp_adc --> HAL: ""hal set adc""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+
+@enduml

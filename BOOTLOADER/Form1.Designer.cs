@@ -45,6 +45,12 @@
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             btnRefresh = new Button();
             progressFlash = new ProgressBar();
+            txtConsole = new TextBox();
+            label2 = new Label();
+            btnClearConsole = new Button();
+            txtChoose = new TextBox();
+            btnSendChoose = new Button();
+            label3 = new Label();
             ((System.ComponentModel.ISupportInitialize)bindingSource1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bindingSource2).BeginInit();
             SuspendLayout();
@@ -156,11 +162,72 @@
             progressFlash.Size = new Size(540, 22);
             progressFlash.TabIndex = 13;
             // 
+            // txtConsole
+            // 
+            txtConsole.Location = new Point(586, 57);
+            txtConsole.Multiline = true;
+            txtConsole.Name = "txtConsole";
+            txtConsole.ScrollBars = ScrollBars.Vertical;
+            txtConsole.Size = new Size(422, 470);
+            txtConsole.TabIndex = 14;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
+            label2.Location = new Point(683, 21);
+            label2.Name = "label2";
+            label2.Size = new Size(234, 25);
+            label2.TabIndex = 15;
+            label2.Text = "Console Update Firmware ";
+            // 
+            // btnClearConsole
+            // 
+            btnClearConsole.Location = new Point(916, 533);
+            btnClearConsole.Name = "btnClearConsole";
+            btnClearConsole.Size = new Size(92, 29);
+            btnClearConsole.TabIndex = 16;
+            btnClearConsole.Text = "Clear";
+            btnClearConsole.UseVisualStyleBackColor = true;
+            btnClearConsole.Click += btnClearConsole_Click;
+            // 
+            // txtChoose
+            // 
+            txtChoose.Location = new Point(586, 568);
+            txtChoose.Name = "txtChoose";
+            txtChoose.Size = new Size(422, 23);
+            txtChoose.TabIndex = 17;
+            // 
+            // btnSendChoose
+            // 
+            btnSendChoose.Location = new Point(916, 598);
+            btnSendChoose.Name = "btnSendChoose";
+            btnSendChoose.Size = new Size(92, 29);
+            btnSendChoose.TabIndex = 18;
+            btnSendChoose.Text = "Send";
+            btnSendChoose.UseVisualStyleBackColor = true;
+            btnSendChoose.Click += btnSendChoose_Click;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(586, 547);
+            label3.Name = "label3";
+            label3.Size = new Size(137, 15);
+            label3.TabIndex = 19;
+            label3.Text = "Write option you choose";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(600, 639);
+            ClientSize = new Size(1036, 639);
+            Controls.Add(label3);
+            Controls.Add(btnSendChoose);
+            Controls.Add(txtChoose);
+            Controls.Add(btnClearConsole);
+            Controls.Add(label2);
+            Controls.Add(txtConsole);
             Controls.Add(progressFlash);
             Controls.Add(btnRefresh);
             Controls.Add(txtReceive);
@@ -200,5 +267,11 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private Button btnRefresh;
         private ProgressBar progressFlash;
+        private TextBox txtConsole;
+        private Label label2;
+        private Button btnClearConsole;
+        private TextBox txtChoose;
+        private Button btnSendChoose;
+        private Label label3;
     }
 }

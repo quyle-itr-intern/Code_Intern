@@ -1,0 +1,46 @@
+@startuml led rgb
+
+== led rgb init ==
+main --> driver_adc: ""init module led rgb""
+driver_adc --> bsp_adc: ""init led rgb""
+bsp_adc --> HAL: ""hal init pin rgb""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== led rgb fade out ==
+main -> driver_adc: ""set fade out color""
+driver_adc --> bsp_adc: ""set duty led rgb""
+bsp_adc --> HAL: ""hal set pwm led rgb""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== led rgb fade in ==
+main -> driver_adc: ""set fade in color""
+driver_adc --> bsp_adc: ""set duty led rgb""
+bsp_adc --> HAL: ""hal set pwm led rgb""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== led red set percent ==
+main -> driver_adc: ""set led red percent""
+driver_adc --> bsp_adc: ""set duty led red""
+bsp_adc --> HAL: ""hal set pwm led red""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== led green set percent ==
+main -> driver_adc: ""set led green percent""
+driver_adc --> bsp_adc: ""set duty led green""
+bsp_adc --> HAL: ""hal set pwm led green""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+== led blue set percent ==
+main -> driver_adc: ""set led blue percent""
+driver_adc --> bsp_adc: ""set duty led blue""
+bsp_adc --> HAL: ""hal set pwm led blue""
+HAL --> bsp_adc: ""return""
+bsp_adc --> driver_adc: ""return""
+driver_adc --> main : ""return""
+
+@enduml

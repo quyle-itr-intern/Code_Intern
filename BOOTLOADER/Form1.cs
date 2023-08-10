@@ -22,11 +22,13 @@ namespace BOOTLOADER
         SerialPort port = new SerialPort();
         char Data_Receive;
         string pathfilehex = new string("");
+        string RxString;
+        byte flag_update = 0;
 
         public Form1()
         {
-            this.MinimumSize = new Size(600, 680);
-            this.MaximumSize = new Size(600, 680);
+            this.MinimumSize = new Size(1050, 680);
+            this.MaximumSize = new Size(1050, 680);
             InitializeComponent();
         }
 
@@ -120,6 +122,8 @@ namespace BOOTLOADER
 
                     UInt32 sizeCode = ReadSizeFlash(pathfilehex);
 
+                    flag_update = 1;
+
                     CountOut = 0;
                     Data_Receive = ' ';
                     while (Data_Receive != 'R')
@@ -149,7 +153,7 @@ namespace BOOTLOADER
                         if ((CountOut == 3000))
                         {
                             string title = "Load Flash";
-                            MessageBox.Show("STM32 Bootloader Not Response Size !!! " + Data_Receive, title);
+                            MessageBox.Show("STM32 Bootloader Not Response Size !!! ", title);
                             goto end;
                         }
                     }
@@ -162,11 +166,11 @@ namespace BOOTLOADER
                         port.Write("X");
                         await Task.Delay(1000);
                         CountOut++;
-                        if( CountOut == 5)
+                        if (CountOut == 5)
                         {
                             MessageBox.Show("STM32 Bootloader Start Fail !!! ", "Load Flash");
                             goto end;
-                        }    
+                        }
                     }
 
                     progressFlash.Maximum = rows;
@@ -179,25 +183,30 @@ namespace BOOTLOADER
                         Data_Receive = ' ';
                         data_line = read.ReadLine();
                         port.Write(data_line);
-                        //port.Write("Y");
+                        /* port.Write("Y"); */
 
-                        TimerOut = 2000;
-                        while ((Data_Receive != 'R') && (TimerOut > 0))
+                        TimerOut = 100;
+                        while ((Data_Receive != 'R'))
                         {
                             await Task.Delay(1);
                             TimerOut--;
                             if (Data_Receive == 'E')
                             {
                                 Data_Receive = ' ';
-                                TimerOut = 2000;
+                                TimerOut = 100;
                                 port.Write(data_line);
                             }
-                        }
-                        if (TimerOut == 0)
-                        {
-                            string title = "Load Flash";
-                            MessageBox.Show("STM32 Bootloader Not Response in Process !!! " + pathfilehex, title);
-                            goto end;
+                            if (Data_Receive == 'C')
+                            {
+                                MessageBox.Show("STM32 Bootloader Cancel Update Firmware !!! ", "Load Flash");
+                                goto end;
+                            }
+                            if (TimerOut == 0)
+                            {
+                                string title = "Load Flash";
+                                MessageBox.Show("STM32 Bootloader Not Response in Process !!! ", title);
+                                goto end;
+                            }
                         }
                         Data_Receive = ' ';
                     }
@@ -220,6 +229,7 @@ namespace BOOTLOADER
                 }
             end:;
                 btnSend.Enabled = true;
+                flag_update = 0;
             }
             else
             {
@@ -252,14 +262,24 @@ namespace BOOTLOADER
         private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             SerialPort sp = (SerialPort)sender;
-            string temp = sp.ReadExisting();
-            if (temp == null)
+            RxString = sp.ReadExisting();
+            if (RxString == null)
                 return;
-            Data_Receive = (char)temp[0];
+            if( flag_update == 1 )
+            {
+                Data_Receive = (char)RxString[0];
+            }    
             Debug.Print("Data Received:");
-            Debug.Print(Data_Receive.ToString());
+            Debug.Print(RxString);
+            if( flag_update != 1 )
+            {
+                this.Invoke(new EventHandler(showConsoleText));
+            }    
         }
-
+        private void showConsoleText(object sender, EventArgs e)
+        {
+            txtConsole.AppendText(RxString);
+        }
         private void btnClose_Click(object sender, EventArgs e)
         {
             if (port.IsOpen)
@@ -300,6 +320,25 @@ namespace BOOTLOADER
             comPort.Items.Clear();
             string[] ports = SerialPort.GetPortNames();
             comPort.Items.AddRange(ports);
+        }
+
+        private void btnClearConsole_Click(object sender, EventArgs e)
+        {
+            txtConsole.Clear();
+        }
+
+        private void btnSendChoose_Click(object sender, EventArgs e)
+        {
+            if (port.IsOpen)
+            {
+                btnSendChoose.Enabled = false;
+                port.Write(txtChoose.Text);
+                btnSendChoose.Enabled = true;
+            }
+            else
+            {
+                MessageBox.Show("Please connect COMx port to write !!!", "COM");
+            }
         }
     }
 }

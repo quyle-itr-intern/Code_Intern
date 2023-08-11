@@ -1,0 +1,157 @@
+@startuml ds1307
+
+group drv_ds1307_init []
+    main -> driver_ds1307 : init module
+    driver_ds1307 -> bsp_ds1307 : config module
+    bsp_ds1307 -> HAL: HAL set up
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_check_device []
+    main -> driver_ds1307 : check device
+    driver_ds1307 -> bsp_ds1307 : call check device
+    bsp_ds1307 -> HAL: HAL device ready
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_clock_haft_enable []
+    main -> driver_ds1307 : enable clock haft
+    driver_ds1307 -> bsp_ds1307 : call enable clock haft
+    bsp_ds1307 -> HAL: HAL send clock enable
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_clock_haft_disable []
+    main -> driver_ds1307 : disable clock haft
+    driver_ds1307 -> bsp_ds1307 : call disable clock haft
+    bsp_ds1307 -> HAL: HAL send clock disable
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_mode_12h []
+    main -> driver_ds1307 : set mode 12h
+    driver_ds1307 -> bsp_ds1307 : call funtion set mode
+    bsp_ds1307 -> HAL: HAL config mode
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_mode_24h []
+    main -> driver_ds1307 : set mode 24h
+    driver_ds1307 -> bsp_ds1307 : call funtion set mode
+    bsp_ds1307 -> HAL: HAL config mode
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_time []
+    main -> driver_ds1307 : set time
+    driver_ds1307 -> bsp_ds1307 : call funtion set time
+    bsp_ds1307 -> HAL: HAL config time
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_get_time []
+    main -> driver_ds1307 : get time
+    driver_ds1307 -> bsp_ds1307 : call funtion get time
+    bsp_ds1307 -> HAL: HAL get time
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_enable_swq []
+    main -> driver_ds1307 : enable swq
+    driver_ds1307 -> bsp_ds1307 : call funtion config swq
+    bsp_ds1307 -> HAL: HAL config swq
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_disable_swq []
+    main -> driver_ds1307 : disable swq
+    driver_ds1307 -> bsp_ds1307 : call funtion config swq
+    bsp_ds1307 -> HAL: HAL config swq
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_out_1Hz []
+    main -> driver_ds1307 : set swq 1Hz
+    driver_ds1307 -> bsp_ds1307 : call funtion fre swq
+    bsp_ds1307 -> HAL: HAL config fre swq
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_out_4096Hz []
+    main -> driver_ds1307 : set swq 4096Hz
+    driver_ds1307 -> bsp_ds1307 : call funtion fre swq
+    bsp_ds1307 -> HAL: HAL config fre swq
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_out_8192Hz []
+    main -> driver_ds1307 : set swq 8192Hz
+    driver_ds1307 -> bsp_ds1307 : call funtion fre swq
+    bsp_ds1307 -> HAL: HAL config fre swq
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+group drv_ds1307_set_out_32768Hz []
+    main -> driver_ds1307 : set swq 32768Hz
+    driver_ds1307 -> bsp_ds1307 : call funtion fre swq
+    bsp_ds1307 -> HAL: HAL config fre swq
+    activate HAL
+    bsp_ds1307 <- HAL: Return
+    deactivate HAL
+    driver_ds1307 <- bsp_ds1307 : Return
+    main <- driver_ds1307 : Return
+end
+
+@enduml

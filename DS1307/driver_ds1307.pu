@@ -25,7 +25,7 @@ end
 group drv_ds1307_set_clock_haft_enable []
     main -> driver_ds1307 : enable clock haft
     driver_ds1307 -> bsp_ds1307 : call enable clock haft
-    bsp_ds1307 -> HAL: HAL send clock enable
+    bsp_ds1307 -> HAL: HAL config clock
     activate HAL
     bsp_ds1307 <- HAL: Return
     deactivate HAL
@@ -36,7 +36,7 @@ end
 group drv_ds1307_set_clock_haft_disable []
     main -> driver_ds1307 : disable clock haft
     driver_ds1307 -> bsp_ds1307 : call disable clock haft
-    bsp_ds1307 -> HAL: HAL send clock disable
+    bsp_ds1307 -> HAL: HAL config clock
     activate HAL
     bsp_ds1307 <- HAL: Return
     deactivate HAL

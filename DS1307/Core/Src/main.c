@@ -99,15 +99,16 @@ int main(void)
   drv_ds1307_init();
 
   time.seconds = 0;
-  time.minutes = 18;
-  time.hours = 11;
+  time.minutes = 45;
+  time.hours = 13;
   time.day = 6;
   time.date = 11;
   time.month = 8;
   time.year = 23;
 
-  drv_ds1307_set_out_32768Hz();
-  drv_ds1307_enable_swq();
+  /* drv_ds1307_set_time(time); */
+
+  drv_ds1307_set_mode_24h();
 
   /* USER CODE END 2 */
 

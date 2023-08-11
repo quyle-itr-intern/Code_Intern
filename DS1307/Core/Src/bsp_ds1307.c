@@ -138,7 +138,7 @@ bsp_ds1307_status_t bsp_ds1307_set_clock_haft(uint8_t bit_clock_haft)
   uint8_t value    = bit_clock_haft ? (1 << 7) : 0;
   uint8_t reg_data = 0;
   bsp_ds1307_read_reg(BSP_DS1307_SECONDS, &reg_data);
-  return bsp_ds1307_write_reg(BSP_DS1307_SECONDS, value | (reg_data & 0x3F));
+  return bsp_ds1307_write_reg(BSP_DS1307_SECONDS, value | (reg_data & 0x7F));
 }
 
 bsp_ds1307_status_t bsp_ds1307_set_output_sqw(bsp_output_sqw_t out_sqw)

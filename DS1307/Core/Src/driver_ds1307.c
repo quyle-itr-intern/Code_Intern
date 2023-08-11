@@ -37,7 +37,7 @@ drv_ds1307_status_t drv_ds1307_get_time(drv_ds1307_time_t *time)
 
 drv_ds1307_status_t drv_ds1307_set_time(drv_ds1307_time_t time)
 {
-  return bsp_ds1307_set_time(time.seconds, time.minutes, time.hours, time.date, time.day, time.month, time.year);
+  return bsp_ds1307_set_time(time.seconds, time.minutes, time.hours, time.day, time.date, time.month, time.year);
 }
 
 drv_ds1307_status_t drv_ds1307_set_mode_12h(void)

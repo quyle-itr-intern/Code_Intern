@@ -59,7 +59,7 @@ bsp_mfrc522_status_t bsp_mfrc522_clear_bit_reg(uint8_t reg, uint8_t bit)
   return bsp_mfrc522_write_reg(reg, bsp_mfrc522_read_reg(reg) & (~bit));
 }
 
-bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *sendData, uint8_t sendLen, uint8_t *backData, uint16_t *backLen)
+bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *send_data, uint8_t send_len, uint8_t *back_data, uint16_t *back_len)
 {
   bsp_mfrc522_status_t status  = bsp_mfrc522_error;
   uint8_t              irqEn   = 0x00;
@@ -95,19 +95,19 @@ bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *sendData, uin
   bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, BSP_PCD_IDLE);
 
   // Writing data to the FIFO
-  for (i = 0; i < sendLen; i++)
+  for (i = 0; i < send_len; i++)
   {
-    bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, sendData[i]);
+    bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, send_data[i]);
   }
 
   // Execute the command
   bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, command);
   if (command == BSP_PCD_TRANSCEIVE)
   {
-    bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);  
+    bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);
   }
 
-  i = 2000; 
+  i = 2000;
   do
   {
     /* Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq */
@@ -115,7 +115,7 @@ bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *sendData, uin
     i--;
   } while ((i != 0) && !(n & 0x01) && !(n & waitIRq));
 
-  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80); 
+  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);
 
   if (i != 0)
   {
@@ -133,11 +133,11 @@ bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *sendData, uin
         lastBits = bsp_mfrc522_read_reg(BSP_MFRC522_REG_CONTROL) & 0x07;
         if (lastBits)
         {
-          *backLen = (n - 1) * 8 + lastBits;
+          *back_len = (n - 1) * 8 + lastBits;
         }
         else
         {
-          *backLen = n * 8;
+          *back_len = n * 8;
         }
 
         if (n == 0)
@@ -152,7 +152,7 @@ bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *sendData, uin
         /* reading the received data in FIFO */
         for (i = 0; i < n; i++)
         {
-          backData[i] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_FIFO_DATA);
+          back_data[i] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_FIFO_DATA);
         }
       }
     }
@@ -164,17 +164,17 @@ bsp_mfrc522_status_t bsp_mfrc522_to_card(uint8_t command, uint8_t *sendData, uin
   return status;
 }
 
-bsp_mfrc522_status_t bsp_mfrc522_request(uint8_t reqMode, uint8_t *TagType)
+bsp_mfrc522_status_t bsp_mfrc522_request(uint8_t request_mode, uint8_t *tag_type)
 {
   bsp_mfrc522_status_t status;
-  uint16_t             backBits;                          
+  uint16_t             back_bits;
 
-  bsp_mfrc522_write_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x07); 
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x07);
 
-  TagType[0] = reqMode;
-  status     = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, TagType, 1, TagType, &backBits);
+  tag_type[0] = request_mode;
+  status      = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, tag_type, 1, tag_type, &back_bits);
 
-  if ((status != bsp_mfrc522_ok) || (backBits != 0x10))
+  if ((status != bsp_mfrc522_ok) || (back_bits != 0x10))
   {
     status = bsp_mfrc522_error;
   }
@@ -182,27 +182,27 @@ bsp_mfrc522_status_t bsp_mfrc522_request(uint8_t reqMode, uint8_t *TagType)
   return status;
 }
 
-bsp_mfrc522_status_t bsp_mfrc522_anticoll(uint8_t *serNum)
+bsp_mfrc522_status_t bsp_mfrc522_anticoll(uint8_t *data)
 {
   bsp_mfrc522_status_t status;
   uint8_t              i;
-  uint8_t              serNumCheck = 0;
-  uint16_t             unLen;
+  uint8_t              num_check = 0;
+  uint16_t             len;
 
-  bsp_mfrc522_write_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x00);  
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x00);
 
-  serNum[0] = BSP_PICC_ANTICOLL;
-  serNum[1] = 0x20;
-  status    = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, serNum, 2, serNum, &unLen);
+  data[0] = BSP_PICC_ANTICOLL;
+  data[1] = 0x20;
+  status  = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, data, 2, data, &len);
 
   if (status == bsp_mfrc522_ok)
   {
     /* check card serial number */
     for (i = 0; i < 4; i++)
     {
-      serNumCheck ^= serNum[i];
+      num_check ^= data[i];
     }
-    if (serNumCheck != serNum[i])
+    if (num_check != data[i])
     {
       status = bsp_mfrc522_error;
     }
@@ -210,17 +210,17 @@ bsp_mfrc522_status_t bsp_mfrc522_anticoll(uint8_t *serNum)
   return status;
 }
 
-void bsp_mfrc522_calculate_crc(uint8_t *pIndata, uint8_t len, uint8_t *pOutData)
+void bsp_mfrc522_calculate_crc(uint8_t *data_in, uint8_t len, uint8_t *data_out)
 {
   uint8_t i, n;
 
-  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_DIV_IRQ, 0x04);   
+  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_DIV_IRQ, 0x04);
   bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_FIFO_LEVEL, 0x80);
 
   /* writing data to the FIFO */
   for (i = 0; i < len; i++)
   {
-    bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, *(pIndata + i));
+    bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, *(data_in + i));
   }
   bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, BSP_PCD_CALCCRC);
 
@@ -229,44 +229,78 @@ void bsp_mfrc522_calculate_crc(uint8_t *pIndata, uint8_t len, uint8_t *pOutData)
   {
     n = bsp_mfrc522_read_reg(BSP_MFRC522_REG_DIV_IRQ);
     i--;
-  } while ((i != 0) && !(n & 0x04)); 
+  } while ((i != 0) && !(n & 0x04));
 
   /* read CRC calculation result */
-  pOutData[0] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_CRC_RESULT_L);
-  pOutData[1] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_CRC_RESULT_M);
+  data_out[0] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_CRC_RESULT_L);
+  data_out[1] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_CRC_RESULT_M);
 }
 
-void bsp_mfrc522_haft(void)
+bsp_mfrc522_status_t bsp_mfrc522_haft(void)
 {
-  uint16_t unLen;
+  uint16_t len;
   uint8_t  buff[4];
 
   buff[0] = BSP_PICC_HALT;
   buff[1] = 0;
   bsp_mfrc522_calculate_crc(buff, 2, &buff[2]);
 
-  bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, buff, 4, buff, &unLen);
+  return bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, buff, 4, buff, &len);
 }
 
-bsp_mfrc522_status_t bsp_mfrc522_check(uint8_t *id)
+bsp_mfrc522_status_t bsp_mfrc522_read_address(uint8_t block_address, uint8_t *receive_data)
 {
   bsp_mfrc522_status_t status;
-  /* Find cards, return card type */
-  status = bsp_mfrc522_request(BSP_PICC_REQIDL, id);
-  if (status == bsp_mfrc522_ok)
+  uint16_t             len;
+  receive_data[0] = BSP_PICC_READ;
+  receive_data[1] = block_address;
+  bsp_mfrc522_calculate_crc(receive_data, 2, &receive_data[2]);
+  status = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, receive_data, 4, receive_data, &len);
+
+  if ((status != bsp_mfrc522_ok) || (len != 0x90))
   {
-    /* Card detected */
-    /* Anti-collision, return card serial number 4 bytes */
-    status = bsp_mfrc522_anticoll(id);
+    status = bsp_mfrc522_error;
   }
-  bsp_mfrc522_haft();  /* Command card into hibernation */
   return status;
 }
 
-void bsp_mfrc522_antenna_on(void)
+bsp_mfrc522_status_t bsp_mfrc522_write_address(uint8_t block_address, uint8_t *send_data)
+{
+  bsp_mfrc522_status_t status;
+  uint16_t             receive_bits;
+  uint8_t              i;
+  uint8_t              buff[18];
+
+  buff[0] = BSP_PICC_WRITE;
+  buff[1] = block_address;
+  bsp_mfrc522_calculate_crc(buff, 2, &buff[2]);
+  status = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, buff, 4, buff, &receive_bits);
+
+  if ((status != bsp_mfrc522_ok) || (receive_bits != 4) || ((buff[0] & 0x0F) != 0x0A))
+  {
+    status = bsp_mfrc522_error;
+  }
+  if (status == bsp_mfrc522_ok)
+  {
+    for (i = 0; i < 16; i++)
+    {
+      buff[i] = *(send_data + i);
+    }
+    bsp_mfrc522_calculate_crc(buff, 16, &buff[16]);
+    status = bsp_mfrc522_to_card(BSP_PCD_TRANSCEIVE, buff, 18, buff, &receive_bits);
+
+    if ((status != bsp_mfrc522_ok) || (receive_bits != 4) || ((buff[0] & 0x0F) != 0x0A))
+    {
+      status = bsp_mfrc522_error;
+    }
+  }
+  return status;
+}
+
+bsp_mfrc522_status_t bsp_mfrc522_antenna_on(void)
 {
   uint8_t temp = bsp_mfrc522_read_reg(BSP_MFRC522_REG_TX_CONTROL);
-  bsp_mfrc522_write_reg(BSP_MFRC522_REG_TX_CONTROL, temp | 0x03);
+  return bsp_mfrc522_write_reg(BSP_MFRC522_REG_TX_CONTROL, temp | 0x03);
 }
 
 bsp_mfrc522_status_t bsp_mfrc522_init(void)
@@ -287,7 +321,7 @@ bsp_mfrc522_status_t bsp_mfrc522_init(void)
   bsp_mfrc522_write_reg(BSP_MFRC522_REG_TX_AUTO, 0x40);
   bsp_mfrc522_write_reg(BSP_MFRC522_REG_MODE, 0x3D);
 
-  bsp_mfrc522_antenna_on();  /* open the antenna */
+  bsp_mfrc522_antenna_on(); /* open the antenna */
 
   return bsp_mfrc522_ok;
 }
@@ -338,10 +372,3 @@ bsp_mfrc522_status_t bsp_mfrc522_read_all(bsp_mfrc522_info_t *mfrc522_info)
   mfrc522_info->t_countervalue_reg[1] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_T_COUNTER_VALUE_L);
   return bsp_mfrc522_ok;
 }
-
-
-
-
-
-
-

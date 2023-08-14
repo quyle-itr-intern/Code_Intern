@@ -52,6 +52,9 @@ default.size.stdout \
 OBJDUMP_LIST += \
 MRC522.list \
 
+OBJCOPY_HEX += \
+MRC522.hex \
+
 
 # All Target
 all: main-build
@@ -75,12 +78,17 @@ MRC522.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
+MRC522.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "MRC522.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) MRC522.elf MRC522.list MRC522.map default.size.stdout
+	-$(RM) MRC522.elf MRC522.hex MRC522.list MRC522.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

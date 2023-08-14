@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "bsp_mfrc522.h"
+#include "driver_mfrc522.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,9 +95,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  bsp_mfrc522_init();
+  drv_mfrc522_init();
 
-  bsp_mfrc522_read_all(&mfrc522);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -107,8 +106,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if( bsp_mfrc522_check(data) == bsp_mfrc522_error)
+    if( drv_mfrc522_read_id_card(data) == drv_mfrc522_ok)
     	HAL_UART_Transmit(&huart2, (uint8_t*) "Error\r\n", 7, 100);
+
     HAL_Delay(1000);
   }
   /* USER CODE END 3 */

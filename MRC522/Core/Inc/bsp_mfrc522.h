@@ -180,4 +180,10 @@ bsp_mfrc522_status_t bsp_mfrc522_read_id(uint8_t *card_type);
 
 bsp_mfrc522_status_t bsp_mfrc522_check(uint8_t *id);
 
+bsp_mfrc522_status_t bsp_mfrc522_anticoll(uint8_t *data);
+
+bsp_mfrc522_status_t bsp_mfrc522_request(uint8_t request_mode, uint8_t *tag_type);
+
+bsp_mfrc522_status_t bsp_mfrc522_haft(void);
+
 #endif

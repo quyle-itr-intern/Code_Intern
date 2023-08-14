@@ -1,0 +1,111 @@
+bsp_mfrc522_status_t bsp_mfrc522_check_card_type(uint8_t *card_type)
+{
+  bsp_mfrc522_status_t status;
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x00);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMM_I_EN, 0xF7);
+  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_COMM_IRQ, 0x80);
+
+  /* clear FIFO*/
+  bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_FIFO_LEVEL, 0x80);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, BSP_PCD_IDLE);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, BSP_PICC_REQIDL);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, BSP_PCD_TRANSCEIVE);
+
+  bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);
+
+  uint8_t  waitIRq = 0x30;
+  uint16_t i       = 5000;
+  uint8_t  n       = 0;
+  do
+  {
+    // CommIrqReg[7..0]
+    // Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
+    n = bsp_mfrc522_read_reg(BSP_MFRC522_REG_COMM_IRQ);
+    i--;
+  } while ((i != 0) && !(n & 0x01) && !(n & waitIRq));
+
+  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);
+
+  if (i != 0)
+  {
+    if (!(bsp_mfrc522_read_reg(BSP_MFRC522_REG_ERROR) & 0x1B))
+    {
+      status = bsp_mfrc522_ok;
+      n      = bsp_mfrc522_read_reg(BSP_MFRC522_REG_FIFO_LEVEL);
+
+      if (n == 0)
+        n = 1;
+      if (n > BSP_MFRC522_MAX_LEN)
+        n = BSP_MFRC522_MAX_LEN;
+
+      // Reading the received data in FIFO
+      for (i = 0; i < n; i++) card_type[i] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_FIFO_DATA);
+    }
+    else
+      status = bsp_mfrc522_error;
+  }
+  return status;
+}
+
+bsp_mfrc522_status_t bsp_mfrc522_read_id(uint8_t *card_type)
+{
+  bsp_mfrc522_status_t status;
+
+  if( bsp_mfrc522_check_card_type(card_type) != bsp_mfrc522_ok )
+    return bsp_mfrc522_error;
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x00);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMM_I_EN, 0xF7);
+  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_COMM_IRQ, 0x80);
+
+  /* clear FIFO*/
+  bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_FIFO_LEVEL, 0x80);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, BSP_PCD_IDLE);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, BSP_PICC_ANTICOLL);
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_FIFO_DATA, 0x20);
+
+  bsp_mfrc522_write_reg(BSP_MFRC522_REG_COMMAND, BSP_PCD_TRANSCEIVE);
+
+  bsp_mfrc522_set_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);
+
+  uint8_t  waitIRq = 0x30;
+  uint16_t i       = 5000;
+  uint8_t  n       = 0;
+  do
+  {
+    // CommIrqReg[7..0]
+    // Set1 TxIRq RxIRq IdleIRq HiAlerIRq LoAlertIRq ErrIRq TimerIRq
+    n = bsp_mfrc522_read_reg(BSP_MFRC522_REG_COMM_IRQ);
+    i--;
+  } while ((i != 0) && !(n & 0x01) && !(n & waitIRq));
+
+  bsp_mfrc522_clear_bit_reg(BSP_MFRC522_REG_BIT_FRAMING, 0x80);
+
+  if (i != 0)
+  {
+    if (!(bsp_mfrc522_read_reg(BSP_MFRC522_REG_ERROR) & 0x1B))
+    {
+      status = bsp_mfrc522_ok;
+      n      = bsp_mfrc522_read_reg(BSP_MFRC522_REG_FIFO_LEVEL);
+
+      if (n == 0)
+        n = 1;
+      if (n > BSP_MFRC522_MAX_LEN)
+        n = BSP_MFRC522_MAX_LEN;
+
+      // Reading the received data in FIFO
+      for (i = 0; i < n; i++) card_type[i] = bsp_mfrc522_read_reg(BSP_MFRC522_REG_FIFO_DATA);
+    }
+    else
+      status = bsp_mfrc522_error;
+  }
+  return status;
+}

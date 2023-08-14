@@ -6,6 +6,8 @@
         "driver_led.h": "c",
         "bsp_led.h": "c",
         "compare": "c",
-        "driver_ds1307.h": "c"
+        "driver_ds1307.h": "c",
+        "bsp_ds1307.h": "c",
+        "bsp_mfrc522.h": "c"
     }
 }

@@ -1,18 +1,34 @@
 /**
-  ******************************************************************************
+ * @file       bsp_flash.c
+ * @copyright  Copyright (C) 2023 QuyLe Co., Ltd. All rights reserved.
+ * @license    This project is released under the QuyLe License.
+ * @version    1.0.0
+ * @date       2023-08-14
+ * @author     quyle-itr-intern
+ *
+ * @brief      bsp flash
+ *
+ * @note
+ */
 
-  BSP FLASH For STM32F446RE
-  Author:   LVQ
-  Updated:  8 August 2022
-
-  ******************************************************************************
-*/
-
+/* Includes ----------------------------------------------------------- */
 #include "bsp_flash.h"
 
+/* Private defines ---------------------------------------------------- */
 #define KEY1 (uint32_t) 0x45670123
 #define KEY2 (uint32_t) 0xCDEF89AB
 
+/* Private enumerate/structure ---------------------------------------- */
+
+/* Private macros ----------------------------------------------------- */
+
+/* Public variables --------------------------------------------------- */
+
+/* Private variables -------------------------------------------------- */
+
+/* Private function prototypes ---------------------------------------- */
+
+/* Function definitions ----------------------------------------------- */
 void bsp_flash_unlock(void)
 {
   FLASH->KEYR = KEY1;
@@ -295,3 +311,5 @@ bsp_flash_status_t bsp_flash_read_struct(uint32_t start_address, wifi_info_t *wi
     return bsp_flash_status_errors;
   return bsp_flash_status_ok;
 }
+
+/* End of file -------------------------------------------------------- */

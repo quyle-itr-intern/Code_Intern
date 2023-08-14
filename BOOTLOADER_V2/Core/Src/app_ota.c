@@ -1,30 +1,24 @@
 /**
-  ******************************************************************************
+ * @file       app_ota.c
+ * @copyright  Copyright (C) 2023 QuyLe Co., Ltd. All rights reserved.
+ * @license    This project is released under the QuyLe License.
+ * @version    1.0.0
+ * @date       2023-08-14
+ * @author     quyle-itr-intern
+ *
+ * @brief      app ota
+ *
+ * @note
+ */
 
-  OTA For STM32F446RE
-  Author:   LVQ
-  Updated:  6 August 2023
-  Algorithm:
-
-  ******************************************************************************
-*/
-
+/* Includes ----------------------------------------------------------- */
 #include "app_ota.h"
-
 #include <stdlib.h>
 
+/* Private defines ---------------------------------------------------- */
 #define ADDRESS_FIRMWARE_APPLICATION 0x08008000U
 #define STM32F446xx                  1
 #define USART_UD                     &huart1
-
-uint8_t flag_ota_update   = FALSE;
-uint8_t flag_size_flash   = FALSE;
-uint8_t flag_ota_complete = FALSE;
-uint8_t flag_earse_ok     = FALSE;
-
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-extern DMA_HandleTypeDef  hdma_usart1_rx;
 
 #ifdef STM32F401xx
 uint32_t size_current   = 0;
@@ -34,19 +28,24 @@ uint32_t max_size_flash = 245760;
 uint32_t max_size_flash = 507904;
 #endif
 
-/*****************************************************************/
-uint8_t g_flag_cplt_dma = FALSE;
+/* Private enumerate/structure ---------------------------------------- */
 
-#define RX_BUFFER_SIZE 50
-uint8_t data_receive_dma[RX_BUFFER_SIZE];
+/* Private macros ----------------------------------------------------- */
 
-uint32_t size_current;
-uint8_t  rx_buffer[50];
-uint8_t *buffer_save_data_handle;
+/* Public variables --------------------------------------------------- */
+extern UART_HandleTypeDef huart1;
 
+/* Private variables -------------------------------------------------- */
+uint8_t           flag_ota_update   = FALSE;
+uint8_t           flag_size_flash   = FALSE;
+uint8_t           flag_ota_complete = FALSE;
+uint8_t           flag_earse_ok     = FALSE;
+uint32_t          size_current;
 volatile uint32_t size_data_firmware = 0;
-volatile uint32_t address_write_flash; /* Pointer to store the address in to write */
+volatile uint32_t address_write_flash;
+/* Private function prototypes ---------------------------------------- */
 
+/* Function definitions ----------------------------------------------- */
 void app_ota_write_flash_memory(app_ota_hex_form_data_t *hex_data)
 {
   uint8_t  data_count, i;
@@ -107,13 +106,9 @@ void app_ota_write_flash_memory(app_ota_hex_form_data_t *hex_data)
 
 void app_ota_start_up_bootloader(void)
 {
-  bsp_uart_dma_unregister_callback(&hdma_usart1_rx, HAL_DMA_XFER_HALFCPLT_CB_ID);
-  /* receive data uart dma */
-  bsp_uart_receive_to_idle_dma(&huart1, data_receive_dma, RX_BUFFER_SIZE);
+  bsp_uart_init();
 
-  buffer_save_data_handle = rx_buffer;
-  uint32_t time_last      = HAL_GetTick();
-
+  uint32_t time_last = HAL_GetTick();
   /* wait for update firmware */
   while (HAL_GetTick() - time_last < 3000)
   {
@@ -141,12 +136,7 @@ void app_ota_start_up_bootloader(void)
 
 void app_ota_jump_to_firmware(void)
 {
-  NVIC_DisableIRQ(USART1_IRQn);
-  HAL_NVIC_DisableIRQ(DMA2_Stream2_IRQn);
-
-  HAL_UART_DeInit(&huart1);
-  HAL_UART_DeInit(&huart2);
-  HAL_DMA_DeInit(&hdma_usart1_rx);
+  bsp_uart_deinit_peripheral();
   HAL_RCC_DeInit();
 
   SCB->SHCSR &= ~(SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk | SCB_SHCSR_MEMFAULTENA_Msk);
@@ -339,70 +329,4 @@ void app_ota_handle_data_receive_dma(UART_HandleTypeDef *huart, uint8_t *data, u
   free(buff);
 }
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
-{
-  uint16_t number_char_receive;
-  uint8_t  check_data_full[50];
-
-  /* read data receive from dma */
-  if ((huart->Instance == USART1))
-  {
-    static uint16_t old_pos = 0;
-    uint16_t        i;
-
-    /* check data when dma transfer complete */
-    if (g_flag_cplt_dma)
-    {
-      g_flag_cplt_dma = FALSE;
-      for (i = 0; i < size - old_pos; i++)
-      {
-        check_data_full[i] = data_receive_dma[old_pos + i];
-      }
-      app_ota_hex_form_data_t hex_data;
-      /* check data form correct */
-      if (app_ota_handle_data_receive(&hex_data, check_data_full, size - old_pos) == STATE_ERRORS)
-        return;
-    }
-
-    /* check if new data */
-    if (size != old_pos)
-    {
-      /* check wraps around index data */
-      if (size > old_pos)
-      {
-        number_char_receive = size - old_pos;
-        for (i = 0; i < number_char_receive; i++)
-        {
-          /* read data from buffer dma */
-          buffer_save_data_handle[i] = data_receive_dma[old_pos + i];
-        }
-      }
-      else
-      {
-        number_char_receive = RX_BUFFER_SIZE - old_pos;
-        for (i = 0; i < number_char_receive; i++)
-        {
-          /* read data from buffer dma */
-          buffer_save_data_handle[i] = data_receive_dma[old_pos + i];
-        }
-        if (size > 0)
-        {
-          for (i = 0; i < size; i++)
-          {
-            /* read data from buffer dma */
-            buffer_save_data_handle[number_char_receive + i] = data_receive_dma[i];
-          }
-          number_char_receive += size;
-        }
-      }
-
-#ifdef DEBUG
-      bsp_uart_printf(&huart2, buffer_save_data_handle);
-      bsp_uart_printf(&huart2, (uint8_t *) "\n");
-#endif
-      /* handle data read */
-      app_ota_handle_data_receive_dma(huart, buffer_save_data_handle, number_char_receive);
-    }
-    old_pos = size;
-  }
-}
+/* End of file -------------------------------------------------------- */

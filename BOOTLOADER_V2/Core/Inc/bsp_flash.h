@@ -1,19 +1,23 @@
 /**
-  ******************************************************************************
+ * @file       bsp_flash.h
+ * @copyright  Copyright (C) 2023 QuyLe Co., Ltd. All rights reserved.
+ * @license    This project is released under the QuyLe License.
+ * @version    1.0.0
+ * @date       2023-08-14
+ * @author     quyle-itr-intern
+ *
+ * @brief      bsp flash
+ *
+ * @note
+ */
 
-  BSP FLASH For STM32F446RE
-  Author:   LVQ
-  Updated:  8 August 2022
-
-  ******************************************************************************
-*/
-
+/* Define to prevent recursive inclusion ------------------------------ */
 #ifndef BSP_FLASH_H
 #define BSP_FLASH_H
-
+/* Includes ----------------------------------------------------------- */
 #include "main.h"
 #include "stdint.h"
-
+/* Public defines ----------------------------------------------------- */
 #define BSP_FLASH_TIMEOUT 20000
 
 /* Define Flash Sector 0 */
@@ -56,12 +60,31 @@
 #define BSP_FLASH_SECTOR_7 7
 #endif
 
-/* Public enum */
+/* Public enumerate/structure ----------------------------------------- */
+/**
+ * @brief enum flash status
+ * 
+ * @return
+ */
 typedef enum
 {
   bsp_flash_status_errors = 0,
   bsp_flash_status_ok,
 } bsp_flash_status_t;
+
+#pragma pack(1)
+typedef struct
+{
+  uint8_t no;
+  uint8_t ssid[25];
+  uint8_t pass[25];
+  uint8_t id;
+} wifi_info_t;
+#pragma pack()
+
+/* Public macros ------------------------------------------------------ */
+
+/* Public function prototypes ----------------------------------------- */
 
 /**
  * @brief  flash unlock to operate with flash memory
@@ -210,16 +233,6 @@ bsp_flash_status_t bsp_flash_write_multi_float(uint32_t start_address, float *fl
  */
 bsp_flash_status_t bsp_flash_read_multi_float(uint32_t start_address, float *float_buffer_write, uint32_t length);
 
-#pragma pack(1)
-typedef struct
-{
-  uint8_t no;
-  uint8_t ssid[25];
-  uint8_t pass[25];
-  uint8_t id;
-} wifi_info_t;
-#pragma pack()
-
 /**
  * @brief  write struct data to flash memory
  *
@@ -247,3 +260,5 @@ bsp_flash_status_t bsp_flash_write_struct(uint32_t start_address, wifi_info_t wi
 bsp_flash_status_t bsp_flash_read_struct(uint32_t start_address, wifi_info_t *wifi_data);
 
 #endif
+
+/* End of file -------------------------------------------------------- */

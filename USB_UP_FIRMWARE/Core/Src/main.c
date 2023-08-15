@@ -59,22 +59,26 @@ extern UART_HandleTypeDef huart2;
 
 extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
-uint8_t rx_data = 0;
+uint8_t rx_data[500] = {0};
 uint8_t flag_reset_chip = 0;
 uint8_t uart1_data = 0;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if( huart->Instance == USART2 )
-	{
-		if( rx_data >= 'A' && rx_data <= 'Z' )
-			CDC_Transmit_FS((uint8_t*) &rx_data, 1);
-		HAL_UART_Receive_IT(&huart2, &rx_data, 1);
-	}
 	if (huart->Instance == USART1 )
 	{
 		CDC_Transmit_FS((uint8_t*) &uart1_data, 1);
 		HAL_UART_Receive_IT(&huart1, &uart1_data, 1);
 	}
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
+{
+	if( huart->Instance == USART2 )
+	{
+		CDC_Transmit_FS(rx_data, size);
+		HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_data, 500);
+	}
+
 }
 
 /* USER CODE END 0 */
@@ -111,7 +115,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_IT(&huart2, &rx_data, 1);
+  HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_data, 500);
   HAL_UART_Receive_IT(&huart1, &uart1_data, 1);
   /* USER CODE END 2 */
 

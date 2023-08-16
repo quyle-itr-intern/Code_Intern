@@ -262,8 +262,8 @@ void app_ota_communication(uint8_t choose, uint8_t *data, uint16_t size)
     char    TX[20] = { 0 };
     uint8_t data_convert[4];
     app_ota_parse_element(data_convert, &data[4], 8);
-    uint32_t address       = (data_convert[0] << 24) | (data_convert[1] << 16) | (data_convert[2] << 8) | (data_convert[3]);
-    uint32_t address_value = *(uint32_t *) address;
+    uint32_t address_read  = (data_convert[0] << 24) | (data_convert[1] << 16) | (data_convert[2] << 8) | (data_convert[3]);
+    uint32_t address_value = *(uint32_t *) address_read;
     sprintf(TX, "Address value: %lx\r\n", address_value);
     bsp_uart_printf_len(USART_UD, (uint8_t *) TX, strlen(TX));
     break;
@@ -271,6 +271,13 @@ void app_ota_communication(uint8_t choose, uint8_t *data, uint16_t size)
   case APP_OTA_WRITE_FLASH:
   {
     /* code */
+    uint8_t data_convert[4];
+    app_ota_parse_element(data_convert, &data[4], 8);
+    uint32_t address_write = (data_convert[0] << 24) | (data_convert[1] << 16) | (data_convert[2] << 8) | (data_convert[3]);
+    app_ota_parse_element(data_convert, &data[15], 8);
+    uint32_t value = (data_convert[0] << 24) | (data_convert[1] << 16) | (data_convert[2] << 8) | (data_convert[3]);
+    bsp_flash_write(address_write, &value, 1);
+    bsp_uart_printf(USART_UD, (uint8_t *) "Write flash memory\r\n");
     break;
   }
   case APP_OTA_EXECUTE_APPLICATION_USER:
@@ -292,8 +299,18 @@ void app_ota_communication(uint8_t choose, uint8_t *data, uint16_t size)
     bsp_uart_printf(USART_UD, (uint8_t *) "STM32446RET6 FLASH: 512KB, RAM: 128KB\r\n");
     break;
   }
-
-  default: break;
+  case APP_OTA_ERASE_SECTOR_DEVICE:
+  {
+    /* code */
+    bsp_flash_erase(bsp_get_address_from_sector(data[2] - 48));
+    bsp_uart_printf(USART_UD, (uint8_t *) "Erase sector done !!!\r\n");
+    break;
+  }
+  default:
+  {
+    bsp_uart_printf(USART_UD, (uint8_t *) "Error !!!\r\n");
+    break;
+  }
   }
 }
 
@@ -306,6 +323,7 @@ void app_ota_show_function(void)
   bsp_uart_printf(USART_UD, (uint8_t *) "     3. Execute The Application Code \r\n");
   bsp_uart_printf(USART_UD, (uint8_t *) "     4. Get Bootloader Version \r\n");
   bsp_uart_printf(USART_UD, (uint8_t *) "     5. Get Device Information \r\n");
+  bsp_uart_printf(USART_UD, (uint8_t *) "     6. Erase Sector Device \r\n");
   bsp_uart_printf(USART_UD, (uint8_t *) "=============================\r\n");
 }
 
@@ -331,6 +349,8 @@ void app_ota_handle_data_receive_dma(UART_HandleTypeDef *huart, uint8_t *data, u
       app_ota_communication(4, buff, size);
     else if (buff[1] == '5')
       app_ota_communication(5, buff, size);
+    else if (buff[1] == '6')
+      app_ota_communication(6, buff, size);
     break;
   }
   /* flag ota update */

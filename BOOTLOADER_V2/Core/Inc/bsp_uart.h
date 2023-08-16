@@ -20,7 +20,7 @@
 #include "main.h"
 
 /* Public defines ----------------------------------------------------- */
-#define TIME_OUT_TRANSMIT_UART 100
+#define TIME_OUT_TRANSMIT_UART 1000
 
 /* Public enumerate/structure ----------------------------------------- */
 

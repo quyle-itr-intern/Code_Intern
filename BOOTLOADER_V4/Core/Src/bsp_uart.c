@@ -14,6 +14,7 @@
 /* Includes ----------------------------------------------------------- */
 #include "bsp_uart.h"
 
+#include <string.h>
 /* Private defines ---------------------------------------------------- */
 
 /* Private enumerate/structure ---------------------------------------- */
@@ -28,15 +29,27 @@ uint8_t                   g_flag_cplt_dma = FALSE;
 
 /* Private variables -------------------------------------------------- */
 #define RX_BUFFER_SIZE 50
-uint8_t  data_receive_dma[RX_BUFFER_SIZE];
-uint8_t  rx_buffer[50];
-uint8_t *buffer_save_data_handle;
+uint8_t                      data_receive_dma[RX_BUFFER_SIZE];
+uint8_t                      rx_buffer[50];
+uint8_t                     *buffer_save_data_handle;
+bsp_uart_handle_rx_data_t    bsp_uart_handle_rx_data_callback;
+bsp_uart_bootloader_comand_t bsp_uart_bootloader_comand_callback;
 
 /* Private function prototypes ---------------------------------------- */
+void bsp_uart_set_callback_handle_rx_data(void *cb)
+{
+  bsp_uart_handle_rx_data_callback = cb;
+}
+
+void bsp_uart_set_callback_bootloader_command(void *cb)
+{
+  bsp_uart_bootloader_comand_callback = cb;
+}
 
 /* Function definitions ----------------------------------------------- */
 void bsp_uart_init(void)
 {
+  bsp_uart_set_callback_handle_rx_data(bootloader_command_handle_data);
   /* Init UART */
   bsp_uart_dma_unregister_callback(&hdma_usart1_rx, HAL_DMA_XFER_HALFCPLT_CB_ID);
   /* receive data uart dma */
@@ -46,7 +59,12 @@ void bsp_uart_init(void)
 
 void bsp_uart_printf(UART_HandleTypeDef *huart, uint8_t *string)
 {
-  HAL_UART_Transmit(huart, string, strlen((char*) string), TIME_OUT_TRANSMIT_UART);
+  HAL_UART_Transmit(huart, string, strlen((char *) string), TIME_OUT_TRANSMIT_UART);
+}
+
+void bsp_uart1_printf(uint8_t *string)
+{
+  HAL_UART_Transmit(&huart1, string, strlen((char *) string), TIME_OUT_TRANSMIT_UART);
 }
 
 void bsp_uart_printf_len(UART_HandleTypeDef *huart, uint8_t *string, uint16_t len)
@@ -79,8 +97,9 @@ void bsp_uart_deinit_peripheral(void)
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 {
-  uint16_t number_char_receive;
-  uint8_t  check_data_full[50];
+  bootloader_command_data_t command_data;
+  uint16_t                  number_char_receive;
+  uint8_t                   check_data_full[256];
 
   /* read data receive from dma */
   if ((huart->Instance == USART1))
@@ -96,9 +115,12 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
       {
         check_data_full[i] = data_receive_dma[old_pos + i];
       }
-      app_ota_hex_form_data_t hex_data;
       /* check data form correct */
-      if (app_ota_handle_data_receive(&hex_data, check_data_full, size - old_pos) == STATE_ERRORS)
+      if (bsp_uart_handle_rx_data_callback(&command_data, check_data_full, size - old_pos) == bootloader_comand_ok)
+      {
+        bsp_uart_bootloader_comand_callback(command_data);
+      }
+      else
         return;
     }
 
@@ -134,12 +156,17 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
         }
       }
 
-	#ifdef DEBUG
+#ifdef DEBUG
       HAL_UART_Transmit(&huart2, buffer_save_data_handle, number_char_receive, 100);
       HAL_UART_Transmit(&huart2, (uint8_t *) "\r\n", 2, 100);
-	#endif
+#endif
       /* handle data read */
-      app_ota_handle_data_receive_dma(huart, buffer_save_data_handle, number_char_receive);
+      if (bsp_uart_handle_rx_data_callback(&command_data, buffer_save_data_handle, number_char_receive) == bootloader_comand_ok)
+      {
+        bsp_uart_bootloader_comand_callback(command_data);
+      }
+      else
+        return;
     }
     old_pos = size;
   }

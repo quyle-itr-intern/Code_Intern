@@ -16,11 +16,12 @@
 #define BSP_USART_H
 
 /* Includes ----------------------------------------------------------- */
-#include "app_ota.h"
 #include "main.h"
-
+#include "bootloader_command.h"
 /* Public defines ----------------------------------------------------- */
 #define TIME_OUT_TRANSMIT_UART 1000
+#define TRUE 1
+#define FALSE 0
 
 /* Public enumerate/structure ----------------------------------------- */
 
@@ -92,6 +93,14 @@ void bsp_uart_init(void);
 void bsp_uart_deinit_peripheral(void);
 
 void bsp_uart_printf_len(UART_HandleTypeDef *huart, uint8_t *string, uint16_t len);
+
+typedef bootloader_command_status_t (* bsp_uart_handle_rx_data_t) (bootloader_command_data_t* command_data, uint8_t* buffer, uint16_t size);
+
+typedef void (* bsp_uart_bootloader_comand_t) (bootloader_command_data_t command_data);
+
+void bsp_uart_set_callback_handle_rx_data(void *cb);
+void bsp_uart_set_callback_bootloader_command(void *cb);
+void bsp_uart1_printf(uint8_t *string);
 
 #endif
 

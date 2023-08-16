@@ -54,6 +54,8 @@
             label4 = new Label();
             btnConnectDevice = new Button();
             dataGridView = new DataGridView();
+            txtCRC = new TextBox();
+            btnCRC = new Button();
             ((System.ComponentModel.ISupportInitialize)bindingSource1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)bindingSource2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
@@ -253,11 +255,30 @@
             dataGridView.Size = new Size(460, 470);
             dataGridView.TabIndex = 22;
             // 
+            // txtCRC
+            // 
+            txtCRC.Location = new Point(1091, 568);
+            txtCRC.Name = "txtCRC";
+            txtCRC.Size = new Size(303, 23);
+            txtCRC.TabIndex = 23;
+            // 
+            // btnCRC
+            // 
+            btnCRC.Location = new Point(1213, 598);
+            btnCRC.Name = "btnCRC";
+            btnCRC.Size = new Size(87, 30);
+            btnCRC.TabIndex = 24;
+            btnCRC.Text = "CRC";
+            btnCRC.UseVisualStyleBackColor = true;
+            btnCRC.Click += btnCRC_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1503, 639);
+            Controls.Add(btnCRC);
+            Controls.Add(txtCRC);
             Controls.Add(dataGridView);
             Controls.Add(btnConnectDevice);
             Controls.Add(label4);
@@ -316,5 +337,7 @@
         private Label label4;
         private Button btnConnectDevice;
         private DataGridView dataGridView;
+        private TextBox txtCRC;
+        private Button btnCRC;
     }
 }

@@ -28,9 +28,9 @@ extern DMA_HandleTypeDef  hdma_usart1_rx;
 uint8_t                   g_flag_cplt_dma = FALSE;
 
 /* Private variables -------------------------------------------------- */
-#define RX_BUFFER_SIZE 50
+#define RX_BUFFER_SIZE 200
 uint8_t                      data_receive_dma[RX_BUFFER_SIZE];
-uint8_t                      rx_buffer[50];
+uint8_t                      rx_buffer[RX_BUFFER_SIZE];
 uint8_t                     *buffer_save_data_handle;
 bsp_uart_handle_rx_data_t    bsp_uart_handle_rx_data_callback;
 bsp_uart_bootloader_comand_t bsp_uart_bootloader_comand_callback;
@@ -116,11 +116,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
         check_data_full[i] = data_receive_dma[old_pos + i];
       }
       /* check data form correct */
-      if (bsp_uart_handle_rx_data_callback(&command_data, check_data_full, size - old_pos) == bootloader_comand_ok)
-      {
-        bsp_uart_bootloader_comand_callback(command_data);
-      }
-      else
+      if (bsp_uart_handle_rx_data_callback(&command_data, check_data_full, size - old_pos) != bootloader_comand_ok)
         return;
     }
 

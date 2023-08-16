@@ -21,3 +21,15 @@ void bsp_utility_parse_element(uint8_t *des, uint8_t *buff, uint8_t length)
     }
   }
 }
+
+uint8_t bsp_utility_char_to_hex(uint8_t c)
+{
+  uint8_t result = 0;
+  /*0 ... 9*/
+  if ((c >= '0') && (c <= '9'))
+    result = c - 48;
+  /*A ... F*/
+  else if ((c >= 'A') && (c <= 'F'))
+    result = c - 55;
+  return result;
+}

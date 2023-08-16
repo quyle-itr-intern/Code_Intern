@@ -59,7 +59,7 @@ uint16_t bootloader_command_crc(uint8_t *buffer, uint16_t buffer_length);
 uint16_t cal_crc = 0;
 uint8_t  buffer_data[256];
 
-bootloader_command_status_t bootloader_command_handle_data(bootloader_command_data_t *comand_data, uint8_t *data, uint16_t size)
+bootloader_command_status_t bootloader_command_handle_data(bootloader_command_data_t *command_data, uint8_t *data, uint16_t size)
 {
   bootloader_command_field_t field_frame = START_FRAME;
   /* parse string to hex form data hex */
@@ -70,7 +70,7 @@ bootloader_command_status_t bootloader_command_handle_data(bootloader_command_da
     case START_FRAME:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 2U);
-      if (buffer_data[0] != 0x55)
+      if (buffer_data[0] != START)
         return bootloader_command_error;
       else
       {
@@ -82,16 +82,18 @@ bootloader_command_status_t bootloader_command_handle_data(bootloader_command_da
     case CMD:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 2U);
-      comand_data->cmd = buffer_data[0];
-      count            = 3U;
-      if (comand_data->cmd == COMMAND_READ)
+      command_data->cmd = buffer_data[0];
+      count             = 3U;
+      if (command_data->cmd == COMMAND_READ)
         field_frame = CMD_READ;
-      else if (comand_data->cmd == COMMAND_WRITE)
+      else if (command_data->cmd == COMMAND_WRITE)
         field_frame = CMD_WRITE;
-      else if (comand_data->cmd == COMMAND_ERASE)
+      else if (command_data->cmd == COMMAND_ERASE)
         field_frame = CMD_EARSE;
-      else if (comand_data->cmd == COMMAND_JUMP)
+      else if (command_data->cmd == COMMAND_JUMP)
         field_frame = CMD_JUMP;
+      else if (command_data->cmd == COMMAND_UPDATE)
+        field_frame = CMD_UPDATE;
       else
         return bootloader_command_error;
       break;
@@ -99,68 +101,110 @@ bootloader_command_status_t bootloader_command_handle_data(bootloader_command_da
     case CMD_READ:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 8U);
-      comand_data->address[0] = buffer_data[0];
-      comand_data->address[1] = buffer_data[1];
-      comand_data->address[2] = buffer_data[2];
-      comand_data->address[3] = buffer_data[3];
-      count                   = 12U;
+      command_data->address[0] = buffer_data[0];
+      command_data->address[1] = buffer_data[1];
+      command_data->address[2] = buffer_data[2];
+      command_data->address[3] = buffer_data[3];
+      count                    = 12U;
       bsp_utility_parse_element(buffer_data, &data[count], 2U);
-      comand_data->len = buffer_data[0];
-      field_frame      = CHECK_CRC;
-      count            = 13U;
+      command_data->len = buffer_data[0];
+      field_frame       = CHECK_CRC;
+      count             = 13U;
       break;
     }
     case CMD_WRITE:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 8U);
-      comand_data->address[0] = buffer_data[0];
-      comand_data->address[1] = buffer_data[1];
-      comand_data->address[2] = buffer_data[2];
-      comand_data->address[3] = buffer_data[3];
-      count                   = 12U;
+      command_data->address[0] = buffer_data[0];
+      command_data->address[1] = buffer_data[1];
+      command_data->address[2] = buffer_data[2];
+      command_data->address[3] = buffer_data[3];
+      count                    = 12U;
       bsp_utility_parse_element(buffer_data, &data[count], 2U);
-      comand_data->len = buffer_data[0];
-      count            = 14U;
-      bsp_utility_parse_element(buffer_data, &data[count], comand_data->len * 2U);
-      for (uint8_t i = 0; i < comand_data->len; i++) comand_data->data[i] = buffer_data[i];
-      count += comand_data->len * 2U - 1;
+      command_data->len = buffer_data[0];
+      count             = 14U;
+      bsp_utility_parse_element(buffer_data, &data[count], command_data->len * 2U);
+      for (uint8_t i = 0; i < command_data->len; i++) command_data->data[i] = buffer_data[i];
+      count += command_data->len * 2U - 1;
       field_frame = CHECK_CRC;
       break;
     }
     case CMD_EARSE:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 8U);
-      comand_data->address[0] = buffer_data[0];
-      comand_data->address[1] = buffer_data[1];
-      comand_data->address[2] = buffer_data[2];
-      comand_data->address[3] = buffer_data[3];
-      count                   = 11U;
-      field_frame             = CHECK_CRC;
+      command_data->address[0] = buffer_data[0];
+      command_data->address[1] = buffer_data[1];
+      command_data->address[2] = buffer_data[2];
+      command_data->address[3] = buffer_data[3];
+      count                    = 11U;
+      field_frame              = CHECK_CRC;
       break;
     }
     case CMD_JUMP:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 8U);
-      comand_data->address[0] = buffer_data[0];
-      comand_data->address[1] = buffer_data[1];
-      comand_data->address[2] = buffer_data[2];
-      comand_data->address[3] = buffer_data[3];
-      count                   = 11U;
-      field_frame             = CHECK_CRC;
+      command_data->address[0] = buffer_data[0];
+      command_data->address[1] = buffer_data[1];
+      command_data->address[2] = buffer_data[2];
+      command_data->address[3] = buffer_data[3];
+      count                    = 11U;
+      field_frame              = CHECK_CRC;
+      break;
+    }
+    case CMD_UPDATE:
+    {
+      if (data[count] == 'U') /* Update firmware */
+      {
+        command_data->status_update = 1;
+        count                       = 9U;
+      }
+      else if (data[count] == 'B') /* Begin Update firmware */
+      {
+        command_data->status_update = 2;
+        count                       = 8U;
+      }
+      else if (data[count] == 'E') /* End Update firmware */
+      {
+        command_data->status_update = 3;
+        count                       = 6U;
+      }
+      else if (data[count] == 'S') /* Check size flash memory */
+      {
+        command_data->status_update = 4;
+        command_data->size_flash    = 0;
+        count                       = 8U;
+        while (data[count] != ':')
+        {
+          command_data->size_flash = command_data->size_flash * 10 + bsp_utility_char_to_hex(data[count]);
+          count++;
+        }
+      }
+      else if (data[count] == ':') /* Check size flash memory */
+      {
+        uint8_t i;
+        command_data->status_update = 5;
+        for ( i = 0; i < (size - 8); i++)
+        {
+          command_data->data[i] = data[count + i];
+        }
+        command_data->len = i;
+        count = size - 5;
+      }
+      field_frame = CHECK_CRC;
       break;
     }
     case CHECK_CRC:
     {
       bsp_utility_parse_element(buffer_data, &data[count], 4U);
-      comand_data->crc = (buffer_data[0] << 8) | buffer_data[1];
-      field_frame      = DONE;
+      command_data->crc = (buffer_data[0] << 8) | buffer_data[1];
+      field_frame       = DONE;
       break;
     }
     case DONE:
     {
       /* check sum data hex */
       cal_crc = bootloader_command_crc(data, size - 4);
-      if (cal_crc == comand_data->crc)
+      if (cal_crc == command_data->crc)
         return bootloader_comand_ok;
       else
         return bootloader_command_error;

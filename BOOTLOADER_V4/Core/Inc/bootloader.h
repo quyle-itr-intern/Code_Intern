@@ -17,6 +17,7 @@
 
 /* Includes ----------------------------------------------------------- */
 #include "main.h"
+#include <stdio.h>
 #include "bsp_uart.h"
 #include "bootloader_command.h"
 

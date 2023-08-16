@@ -23,16 +23,20 @@
 /* Public enumerate/structure ----------------------------------------- */
 enum
 {
+  START        = 0x55,
   COMMAND_READ = 0,
   COMMAND_WRITE,
   COMMAND_ERASE,
-  COMMAND_JUMP
+  COMMAND_JUMP,
+  COMMAND_UPDATE,
 };
 
 typedef struct
 {
   uint8_t  cmd;
   uint8_t  address[4];
+  uint8_t  status_update;
+  uint32_t size_flash;
   uint8_t  len;
   uint8_t  data[256];
   uint16_t crc;
@@ -52,8 +56,9 @@ typedef enum
   CMD_WRITE   = 3U,
   CMD_EARSE   = 4U,
   CMD_JUMP    = 5U,
-  CHECK_CRC   = 6U,
-  DONE        = 7U,
+  CMD_UPDATE  = 6U,
+  CHECK_CRC   = 7U,
+  DONE        = 8U,
 } bootloader_command_field_t;
 
 /* Public macros ------------------------------------------------------ */

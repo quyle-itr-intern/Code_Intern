@@ -56,6 +56,40 @@ void bootloader_handle_command(bootloader_command_data_t comand_data)
     bsp_uart1_printf((uint8_t *) "COMMAND_JUMP\r\n");
     break;
   }
+  case COMMAND_UPDATE:
+  {
+    /* code */
+    if (comand_data.status_update == 1)
+    {
+      bsp_uart1_printf((uint8_t *) "Update firmware\r\n");
+    }
+    else if (comand_data.status_update == 2)
+    {
+      bsp_uart1_printf((uint8_t *) "Begin Update firmware\r\n");
+    }
+    else if (comand_data.status_update == 3)
+    {
+      bsp_uart1_printf((uint8_t *) "End Update firmware\r\n");
+    }
+    else if (comand_data.status_update == 4)
+    {
+      char tx[50];
+      sprintf(tx, "Size flash: %ld\r\n", comand_data.size_flash);
+      bsp_uart1_printf((uint8_t *) "COMMAND_UPDATE ");
+      bsp_uart1_printf((uint8_t *) tx);
+    }
+    else if (comand_data.status_update == 5)
+    {
+      for (uint8_t i = 0; i < comand_data.len; i++)
+      {
+        char tx[2];
+        sprintf(tx, "%c", comand_data.data[i]);
+        bsp_uart1_printf((uint8_t *) tx);
+      }
+      bsp_uart1_printf((uint8_t *) "\r\n");
+    }
+    break;
+  }
   default: break;
   }
 }

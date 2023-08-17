@@ -39,6 +39,11 @@ uint8_t flag_ota_check_infor = FALSE;
 
 /* Function definitions ----------------------------------------------- */
 
+void bootloader_handle_error(void)
+{
+  bsp_uart1_printf(BOOTLOADER_RESEND_DATA);
+}
+
 void bootloader_handle_command(bootloader_command_data_t comand_data)
 {
   switch (comand_data.cmd)
@@ -54,7 +59,7 @@ void bootloader_handle_command(bootloader_command_data_t comand_data)
     sprintf(tx, "Address: %lx\r\n", address);
     bsp_uart1_printf((uint8_t *) tx);
 
-    for (uint8_t i = 0; i < comand_data.len; i++)
+    for (uint8_t i = 0; i < comand_data.len / 4; i++)
     {
       address_value = *(uint32_t *) (address + i * 4);
       sprintf(tx, "Value %d: %lx\r\n", i, address_value);
@@ -66,8 +71,30 @@ void bootloader_handle_command(bootloader_command_data_t comand_data)
   {
     /* code */
     bsp_uart1_printf((uint8_t *) "\r\nCOMMAND_WRITE\r\n");
-    uint32_t address      = (comand_data.address[0] << 24) | (comand_data.address[1] << 16) | (comand_data.address[2] << 8) | (comand_data.address[3]);
-    bsp_flash_write(address, (uint32_t*) &comand_data.data[0], comand_data.len / 4);
+    uint32_t address = (comand_data.address[0] << 24) | (comand_data.address[1] << 16) | (comand_data.address[2] << 8) | (comand_data.address[3]);
+    uint8_t  check   = 0;
+    for (uint8_t i = 0; i < (comand_data.len / 4); i++)
+    {
+      if (*(uint32_t *) (address + i * 4) != 0xFFFFFFFF)
+      {
+        check = 1;
+        bsp_uart1_printf((uint8_t *) "erase memory to write !!!\r\n");
+        break;
+      }
+    }
+    if (check)
+      break;
+
+    uint32_t data_write_flash[8] = { 0 };
+    uint8_t  index               = 0;
+
+    for (uint8_t i = 0; i < comand_data.len; i += 4)
+    {
+      data_write_flash[index] = (comand_data.data[i] << 24) | (comand_data.data[i + 1] << 16) | (comand_data.data[i + 2] << 8) | (comand_data.data[i + 3]);
+      index++;
+    }
+
+    bsp_flash_write(address, (uint32_t *) &data_write_flash[0], comand_data.len / 4);
     bsp_uart1_printf((uint8_t *) "write flash memory ok !!!\r\n");
     break;
   }
@@ -139,8 +166,9 @@ void bootloader_handle_command(bootloader_command_data_t comand_data)
     {
       /* Handle data hex */
       bootloader_handle_hex_form_data_t hex_data;
-      if ((bootloader_handle_data_receive(&hex_data, &comand_data.data[0], comand_data.len) == STATE_NO_ERRORS) && flag_ota_update && flag_size_flash)
+      if (flag_ota_update && flag_size_flash)
       {
+        bootloader_handle_data_receive(&hex_data, &comand_data.data[0], comand_data.len);
         /* write data receive to flash memory */
         if (!bootloader_handle_write_flash_memory(&hex_data))
           /* address write memory errors */
@@ -149,10 +177,6 @@ void bootloader_handle_command(bootloader_command_data_t comand_data)
           /* data write successful */
           bsp_uart1_printf(BOOTLOADER_CONFIRM_CHAR);
       }
-      else
-        /* data receive miss or error */
-        bsp_uart1_printf(BOOTLOADER_RESEND_DATA);
-      break;
     }
     break;
   }
@@ -163,9 +187,10 @@ void bootloader_handle_command(bootloader_command_data_t comand_data)
 void bootloader_start_up(void)
 {
   bsp_uart_set_callback_bootloader_command(bootloader_handle_command);
+  bsp_uart_set_callback_bootloader_error(bootloader_handle_error);
   bsp_uart_init();
 
-  bsp_uart1_printf((uint8_t*) "Bootloader stm32!!!");
+  bsp_uart1_printf((uint8_t *) "Bootloader stm32!!!");
 
   while (1)
   {

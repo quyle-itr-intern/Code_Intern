@@ -100,6 +100,7 @@ typedef void (* bsp_uart_bootloader_comand_t) (bootloader_command_data_t command
 
 void bsp_uart_set_callback_handle_rx_data(void *cb);
 void bsp_uart_set_callback_bootloader_command(void *cb);
+void bsp_uart_set_callback_bootloader_error(void *cb);
 void bsp_uart1_printf(uint8_t *string);
 
 #endif

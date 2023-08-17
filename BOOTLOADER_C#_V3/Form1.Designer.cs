@@ -386,9 +386,9 @@
             label8.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
             label8.Location = new Point(1024, 374);
             label8.Name = "label8";
-            label8.Size = new Size(173, 25);
+            label8.Size = new Size(174, 25);
             label8.TabIndex = 34;
-            label8.Text = "Address Data Wtite";
+            label8.Text = "Address Data Write";
             // 
             // txtAddressWrite
             // 
@@ -431,7 +431,7 @@
             txtData1.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
             txtData1.Location = new Point(1342, 402);
             txtData1.Name = "txtData1";
-            txtData1.Size = new Size(98, 33);
+            txtData1.Size = new Size(132, 33);
             txtData1.TabIndex = 39;
             // 
             // txtData2
@@ -439,7 +439,7 @@
             txtData2.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
             txtData2.Location = new Point(1342, 447);
             txtData2.Name = "txtData2";
-            txtData2.Size = new Size(98, 33);
+            txtData2.Size = new Size(132, 33);
             txtData2.TabIndex = 40;
             // 
             // txtData3
@@ -447,7 +447,7 @@
             txtData3.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
             txtData3.Location = new Point(1342, 492);
             txtData3.Name = "txtData3";
-            txtData3.Size = new Size(98, 33);
+            txtData3.Size = new Size(132, 33);
             txtData3.TabIndex = 41;
             // 
             // txtData4
@@ -455,14 +455,14 @@
             txtData4.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
             txtData4.Location = new Point(1342, 531);
             txtData4.Name = "txtData4";
-            txtData4.Size = new Size(98, 33);
+            txtData4.Size = new Size(132, 33);
             txtData4.TabIndex = 42;
             // 
             // label11
             // 
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
-            label11.Location = new Point(1314, 409);
+            label11.Location = new Point(1318, 407);
             label11.Name = "label11";
             label11.Size = new Size(22, 25);
             label11.TabIndex = 44;
@@ -472,7 +472,7 @@
             // 
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
-            label12.Location = new Point(1314, 449);
+            label12.Location = new Point(1317, 452);
             label12.Name = "label12";
             label12.Size = new Size(22, 25);
             label12.TabIndex = 45;
@@ -482,7 +482,7 @@
             // 
             label13.AutoSize = true;
             label13.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
-            label13.Location = new Point(1317, 493);
+            label13.Location = new Point(1317, 497);
             label13.Name = "label13";
             label13.Size = new Size(22, 25);
             label13.TabIndex = 46;
@@ -492,7 +492,7 @@
             // 
             label14.AutoSize = true;
             label14.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point);
-            label14.Location = new Point(1317, 537);
+            label14.Location = new Point(1317, 535);
             label14.Name = "label14";
             label14.Size = new Size(22, 25);
             label14.TabIndex = 47;
@@ -500,7 +500,7 @@
             // 
             // btnWrite
             // 
-            btnWrite.Location = new Point(1342, 570);
+            btnWrite.Location = new Point(1365, 570);
             btnWrite.Name = "btnWrite";
             btnWrite.RightToLeft = RightToLeft.No;
             btnWrite.Size = new Size(106, 30);

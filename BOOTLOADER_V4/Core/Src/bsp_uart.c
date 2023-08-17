@@ -35,6 +35,10 @@ uint8_t                     *buffer_save_data_handle;
 bsp_uart_handle_rx_data_t    bsp_uart_handle_rx_data_callback;
 bsp_uart_bootloader_comand_t bsp_uart_bootloader_comand_callback;
 
+typedef void (*bootloader_handle_error_t)(void);
+
+bootloader_handle_error_t bsp_uart_bootloader_error;
+
 /* Private function prototypes ---------------------------------------- */
 void bsp_uart_set_callback_handle_rx_data(void *cb)
 {
@@ -44,6 +48,11 @@ void bsp_uart_set_callback_handle_rx_data(void *cb)
 void bsp_uart_set_callback_bootloader_command(void *cb)
 {
   bsp_uart_bootloader_comand_callback = cb;
+}
+
+void bsp_uart_set_callback_bootloader_error(void *cb)
+{
+  bsp_uart_bootloader_error = cb;
 }
 
 /* Function definitions ----------------------------------------------- */
@@ -158,11 +167,9 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 #endif
       /* handle data read */
       if (bsp_uart_handle_rx_data_callback(&command_data, buffer_save_data_handle, number_char_receive) == bootloader_comand_ok)
-      {
         bsp_uart_bootloader_comand_callback(command_data);
-      }
       else
-        return;
+        bsp_uart_bootloader_error();
     }
     old_pos = size;
   }

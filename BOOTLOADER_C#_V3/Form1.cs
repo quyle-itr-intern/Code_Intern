@@ -290,12 +290,12 @@ namespace BOOTLOADER
 
                         tx = START + UPDATE + data_line;
                         UInt16 check = crc(tx, (ushort)tx.Length);
-                        if (check < 0x00FF)
+                        if (check <= 0x00FF)
                         {
                             crc_string = crc(tx, (ushort)tx.Length).ToString("X");
                             port.Write(tx + "00" + crc_string);
                         }
-                        else if (check < 0x0FFF)
+                        else if (check <= 0x0FFF)
                         {
                             crc_string = crc(tx, (ushort)tx.Length).ToString("X");
                             port.Write(tx + "0" + crc_string);
@@ -362,7 +362,7 @@ namespace BOOTLOADER
                         }
                     }
                     progressFlash.PerformStep();
-                    Thread.Sleep(500);
+                    await Task.Delay(500);
 
                     tx = START + "03" + "08008000";
                     crc_string = crc(tx, (ushort)tx.Length).ToString("X");
@@ -600,7 +600,7 @@ namespace BOOTLOADER
         }
         private void btnRead_Click(object sender, EventArgs e)
         {
-            if (port.IsOpen)
+            if (port.IsOpen && (btnConnectDevice.Text == "Disconnect"))
             {
                 string tx = START + "00" + txtAddress.Text + txtNumber.Text;
                 string crc_string;
@@ -623,12 +623,12 @@ namespace BOOTLOADER
             }
             else
             {
-                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+                MessageBox.Show("Please connect to device !!!", "COM");
             }
         }
         private void btnErase_Click(object sender, EventArgs e)
         {
-            if (port.IsOpen)
+            if (port.IsOpen && (btnConnectDevice.Text == "Disconnect"))
             {
                 string tx = START + "02" + txtEraseMemory.Text;
                 string crc_string;
@@ -651,12 +651,12 @@ namespace BOOTLOADER
             }
             else
             {
-                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+                MessageBox.Show("Please connect to device !!!", "COM");
             }
         }
         private void btnJump_Click(object sender, EventArgs e)
         {
-            if (port.IsOpen)
+            if (port.IsOpen && (btnConnectDevice.Text == "Disconnect"))
             {
                 string tx = START + "03" + "08008000";
                 string crc_string;
@@ -676,25 +676,21 @@ namespace BOOTLOADER
                     crc_string = crc(tx, (ushort)tx.Length).ToString("X");
                     port.Write(tx + crc_string);
                 }
+                btnConnectDevice.Text = "Connect";
             }
             else
             {
-                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+                MessageBox.Show("Please connect to device !!!", "COM");
             }
         }
         private void btnWrite_Click(object sender, EventArgs e)
         {
-            if (port.IsOpen)
+            if (port.IsOpen && (btnConnectDevice.Text == "Disconnect"))
             {
                 string tx = START + "01" + txtAddressWrite.Text + txtNumberWrite.Text;
 
                 if (txtData1.Text != null)
-                {
-                    char[] nameArray = txtData1.Text.ToCharArray();
-                    Array.Reverse(nameArray);
-                    string reverse = new string(nameArray);
-                    tx += reverse;
-                }
+                    tx += txtData1.Text;
                 if (txtData2.Text != null)
                     tx += txtData2.Text;
                 if (txtData3.Text != null)
@@ -722,7 +718,7 @@ namespace BOOTLOADER
             }
             else
             {
-                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+                MessageBox.Show("Please connect to device !!!", "COM");
             }
         }
         private void btnClearConsleFlash_Click(object sender, EventArgs e)

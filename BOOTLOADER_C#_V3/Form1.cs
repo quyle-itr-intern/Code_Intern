@@ -77,11 +77,11 @@ namespace BOOTLOADER
             dt.Columns.Add("8", typeof(string));
             dt.Columns.Add("C", typeof(string));
 
-            dt.Rows.Add(new object[] { "0x08008000", "0x00203300", "0xac890066", "0x00203300", "0xac890066" });
-            dt.Rows.Add(new object[] { "0x08008010", "0x00203300", "0xac890066", "0x00203300", "0xac890066" });
-            dt.Rows.Add(new object[] { "0x08008020", "0x00203300", "0xac890066", "0x00203300", "0xac890066" });
-            dt.Rows.Add(new object[] { "0x08008030", "0x00203300", "0xac890066", "0x00203300", "0xac890066" });
-            dt.Rows.Add(new object[] { "0x08008040", "0x00203300", "0xac890066", "0x00203300", "0xac890066" });
+            dt.Rows.Add(new object[] { "0x08008000", "", "", "", "" });
+            dt.Rows.Add(new object[] { "0x08008010", "", "", "", "" });
+            dt.Rows.Add(new object[] { "0x08008020", "", "", "", "" });
+            dt.Rows.Add(new object[] { "0x08008030", "", "", "", "" });
+            dt.Rows.Add(new object[] { "0x08008040", "", "", "", "" });
 
             dataGridView.DataSource = dt;
 
@@ -198,7 +198,7 @@ namespace BOOTLOADER
         private async void Send_Click(object sender, EventArgs e)
         {
             UInt16 CountOut = 0;
-            UInt16 TIME_OUT = 100;
+            UInt16 TIME_OUT = 200;
             if (port.IsOpen)
             {
                 btnSend.Enabled = false;
@@ -289,8 +289,22 @@ namespace BOOTLOADER
                         data_line = read.ReadLine();
 
                         tx = START + UPDATE + data_line;
-                        crc_string = crc(tx, (ushort)tx.Length).ToString("X");
-                        port.Write(tx + crc_string);
+                        UInt16 check = crc(tx, (ushort)tx.Length);
+                        if (check < 0x00FF)
+                        {
+                            crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                            port.Write(tx + "00" + crc_string);
+                        }
+                        else if (check < 0x0FFF)
+                        {
+                            crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                            port.Write(tx + "0" + crc_string);
+                        }
+                        else
+                        {
+                            crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                            port.Write(tx + crc_string);
+                        }
 
                         Data_Receive = ' ';
                         CountOut = 0;
@@ -303,8 +317,18 @@ namespace BOOTLOADER
                                 Data_Receive = ' ';
                                 CountOut = 0;
                                 tx = START + UPDATE + data_line;
-                                crc_string = crc(tx, (ushort)tx.Length).ToString("X");
-                                port.Write(tx + crc_string);
+
+                                check = crc(tx, (ushort)tx.Length);
+                                if (check < 0x0FFF)
+                                {
+                                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                                    port.Write(tx + "0" + crc_string);
+                                }
+                                else
+                                {
+                                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                                    port.Write(tx + crc_string);
+                                }
                             }
                             if (Data_Receive == 'C')
                             {
@@ -339,9 +363,15 @@ namespace BOOTLOADER
                     }
                     progressFlash.PerformStep();
                     Thread.Sleep(500);
+
+                    tx = START + "03" + "08008000";
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + crc_string);
+                    progressFlash.Value = 0;
+
                     txtReceive.Text += "Flash firmware to memory successfully !!!\r\n";
                     MessageBox.Show("STM32 Bootloader Success !!! ", "Load Flash");
-                    end:;
+                end:;
                     btnSend.Enabled = true;
                     flag_update = 0;
                 }
@@ -549,16 +579,13 @@ namespace BOOTLOADER
                 if (btnConnectDevice.Text == "Connect")
                 {
                     btnConnectDevice.Text = "Disconnect";
-                    port.Write("I");
-                    await Task.Delay(1);
-                    port.Write("U");
+                    port.Write("C");
                     await Task.Delay(100);
-                    port.Write("FS");
+                    port.Write("U");
                 }
                 else
                 {
                     btnConnectDevice.Text = "Connect";
-                    port.Write("HS");
                 }
             }
             else
@@ -570,6 +597,137 @@ namespace BOOTLOADER
         {
             string crc_string = txtCRC.Text;
             txtConsole.Text = crc(crc_string, (ushort)crc_string.Length).ToString("X");
+        }
+        private void btnRead_Click(object sender, EventArgs e)
+        {
+            if (port.IsOpen)
+            {
+                string tx = START + "00" + txtAddress.Text + txtNumber.Text;
+                string crc_string;
+                UInt16 check = crc(tx, (ushort)tx.Length);
+                if (check < 0x00FF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "00" + crc_string);
+                }
+                else if (check < 0x0FFF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "0" + crc_string);
+                }
+                else
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + crc_string);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+            }
+        }
+        private void btnErase_Click(object sender, EventArgs e)
+        {
+            if (port.IsOpen)
+            {
+                string tx = START + "02" + txtEraseMemory.Text;
+                string crc_string;
+                UInt16 check = crc(tx, (ushort)tx.Length);
+                if (check < 0x00FF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "00" + crc_string);
+                }
+                else if (check < 0x0FFF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "0" + crc_string);
+                }
+                else
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + crc_string);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+            }
+        }
+        private void btnJump_Click(object sender, EventArgs e)
+        {
+            if (port.IsOpen)
+            {
+                string tx = START + "03" + "08008000";
+                string crc_string;
+                UInt16 check = crc(tx, (ushort)tx.Length);
+                if (check < 0x00FF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "00" + crc_string);
+                }
+                else if (check < 0x0FFF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "0" + crc_string);
+                }
+                else
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + crc_string);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+            }
+        }
+        private void btnWrite_Click(object sender, EventArgs e)
+        {
+            if (port.IsOpen)
+            {
+                string tx = START + "01" + txtAddressWrite.Text + txtNumberWrite.Text;
+
+                if (txtData1.Text != null)
+                {
+                    char[] nameArray = txtData1.Text.ToCharArray();
+                    Array.Reverse(nameArray);
+                    string reverse = new string(nameArray);
+                    tx += reverse;
+                }
+                if (txtData2.Text != null)
+                    tx += txtData2.Text;
+                if (txtData3.Text != null)
+                    tx += txtData3.Text;
+                if (txtData4.Text != null)
+                    tx += txtData4.Text;
+
+                string crc_string;
+                UInt16 check = crc(tx, (ushort)tx.Length);
+                if (check < 0x00FF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "00" + crc_string);
+                }
+                else if (check < 0x0FFF)
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + "0" + crc_string);
+                }
+                else
+                {
+                    crc_string = crc(tx, (ushort)tx.Length).ToString("X");
+                    port.Write(tx + crc_string);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select COMx port to flash !!!", "COM");
+            }
+        }
+        private void btnClearConsleFlash_Click(object sender, EventArgs e)
+        {
+            txtSend.Clear();
         }
     }
 }

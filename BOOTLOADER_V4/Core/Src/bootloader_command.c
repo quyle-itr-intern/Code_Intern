@@ -181,13 +181,14 @@ bootloader_command_status_t bootloader_command_handle_data(bootloader_command_da
       }
       else if (data[count] == ':') /* Check size flash memory */
       {
-        uint8_t i;
+        uint8_t len = 0;
         command_data->status_update = 5;
-        for ( i = 0; i < (size - 8); i++)
+        for ( uint8_t i = 0; i < (size - 8); i++)
         {
           command_data->data[i] = data[count + i];
+          len++;
         }
-        command_data->len = i;
+        command_data->len = ++len;
         count = size - 5;
       }
       field_frame = CHECK_CRC;
@@ -229,5 +230,14 @@ uint16_t bootloader_command_crc(uint8_t *buffer, uint16_t buffer_length)
   }
   return (crc_high << 8 | crc_low);
 }
+
+
+
+
+
+
+
+
+
 
 /* End of file -------------------------------------------------------- */

@@ -1,5 +1,6 @@
 "./Core/Src/bootloader.o"
 "./Core/Src/bootloader_command.o"
+"./Core/Src/bootloader_handle.o"
 "./Core/Src/bsp_flash.o"
 "./Core/Src/bsp_uart.o"
 "./Core/Src/bsp_utility.o"

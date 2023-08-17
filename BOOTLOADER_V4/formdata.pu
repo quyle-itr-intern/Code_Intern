@@ -17,7 +17,7 @@ CJAM is idle
 +100 is cmd
 +100 is address
 +400 is bytes
-+200 is crc 
++200 is crc
 +200 is idle
 @100 <-> @200 : 1 Byte
 @200 <-> @300 : 1 Byte
@@ -31,7 +31,7 @@ CJAM is idle
 +100 is address
 +400 is len
 +100 is data
-+200 is crc 
++200 is crc
 +200 is idle
 @100 <-> @200 : 1 Byte
 @200 <-> @300 : 1 Byte
@@ -44,7 +44,7 @@ CJAM is idle
 100 is start
 +100 is cmd
 +100 is address
-+400 is crc 
++400 is crc
 +200 is idle
 @100 <-> @200 : 1 Byte
 @200 <-> @300 : 1 Byte
@@ -54,7 +54,7 @@ CJAM is idle
 @CJAM
 100 is start
 +100 is cmd
-+100 is address 
++100 is address
 +400 is crc
 +200 is idle
 @100 <-> @200 : 1 Byte

@@ -5,10 +5,10 @@
  * @version    1.0.0
  * @date       2023-08-14
  * @author     quy-itr-intern
- *             
+ *
  * @brief      handle bootloader
- *             
- * @note          
+ *
+ * @note
  */
 
 /* Define to prevent recursive inclusion ------------------------------ */
@@ -16,12 +16,19 @@
 #define BOOTLOADER_H
 
 /* Includes ----------------------------------------------------------- */
-#include "main.h"
-#include <stdio.h>
-#include "bsp_uart.h"
 #include "bootloader_command.h"
+#include "bootloader_handle.h"
+#include "bsp_uart.h"
+#include "bsp_flash.h"
+#include "main.h"
+
+#include <stdio.h>
 
 /* Public defines ----------------------------------------------------- */
+
+#define BOOTLOADER_CONFIRM_CHAR  (uint8_t *) "R"
+#define BOOTLOADER_RESEND_DATA   (uint8_t *) "E"
+#define BOOTLOADER_CANCEL_UPDATE (uint8_t *) "C"
 
 /* Public enumerate/structure ----------------------------------------- */
 

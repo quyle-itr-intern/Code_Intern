@@ -6,6 +6,7 @@
 *.ko
 *.obj
 *.elf
+*.list
 
 # Linker output
 *.ilk
@@ -45,11 +46,14 @@
 # Kernel Module Compile Results
 *.mod*
 *.cmd
+.vs
+.vscode
+.vscode/
 .tmp_versions/
 modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
 /.metadata
-/.vs
-/Debug
+*.mk
+**/Debug

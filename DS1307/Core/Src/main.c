@@ -21,8 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "bsp_ds1307.h"
-#include "driver_ds1307.h"
+#include "drv_ds1307.h"
 
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -43,6 +42,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c2;
+I2C_HandleTypeDef hi2c3;
 
 UART_HandleTypeDef huart2;
 
@@ -55,14 +56,18 @@ void        SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_I2C2_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-drv_ds1307_time_t time;
-char              RX[100];
+drv_ds1307_config_t drv_ds1307;
+drv_ds1307_time_t   time_ds1307;
+char                RX[150];
+uint32_t            time_epoch = 0;
 /* USER CODE END 0 */
 
 /**
@@ -95,20 +100,35 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
+  MX_I2C2_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
-  drv_ds1307_init();
 
-  time.seconds = 0;
-  time.minutes = 45;
-  time.hours = 13;
-  time.day = 6;
-  time.date = 11;
-  time.month = 8;
-  time.year = 23;
+  drv_ds1307.drv_ds1307_address   = 0xD0;
+  drv_ds1307.drv_ds1307_i2c       = &hi2c3;
+  drv_ds1307.drv_ds1307_id        = 1;
+  drv_ds1307.drv_ds1307_mode_time = 24;
 
-  /* drv_ds1307_set_time(time); */
+  sprintf(RX, "Status Init: %d\r\n", drv_ds1307_init(&drv_ds1307));
+  HAL_UART_Transmit(&huart2, (uint8_t *) RX, sizeof(RX), 100);
 
-  drv_ds1307_set_mode_24h();
+   drv_ds1307_set_mode_12h(&drv_ds1307);
+
+  time_ds1307.seconds = 58;
+  time_ds1307.minutes = 55;
+  time_ds1307.hours   = 4;
+  time_ds1307.day     = 1;
+  time_ds1307.date    = 20;
+  time_ds1307.month   = 8;
+  time_ds1307.year    = 23;
+  time_ds1307.am_pm   = 1;
+
+  sprintf(RX, "Status Config: %d\r\n", drv_ds1307_set_time(drv_ds1307, time_ds1307));
+  HAL_UART_Transmit(&huart2, (uint8_t *) RX, sizeof(RX), 100);
+
+  drv_ds1307_enable_swq(drv_ds1307);
+
+  drv_ds1307_set_out_8192Hz(drv_ds1307);
 
   /* USER CODE END 2 */
 
@@ -119,14 +139,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if (drv_ds1307_get_time(&time) == drv_ds1307_error)
+    drv_ds1307_get_epoch_time(drv_ds1307, &time_epoch);
+    drv_ds1307_status_t status = drv_ds1307_get_time(drv_ds1307, &time_ds1307);
+    if (status != drv_ds1307_success)
     {
-      HAL_UART_Transmit(&huart2, (uint8_t *) "Error\r\n", 7, 100);
+      sprintf(RX, "Error: %d\r\n", status);
+      HAL_UART_Transmit(&huart2, (uint8_t *) RX, sizeof(RX), 100);
       HAL_Delay(1000);
     }
     else
     {
-      sprintf(RX, "Hours: %d- Minutes: %d- Seconds: %d- Day: %d- Date: %d- Month: %d- Year: %d\r\n", time.hours, time.minutes, time.seconds, time.day, time.date, time.month, time.year);
+      sprintf(RX, "Hours: %d- Minutes: %d- Seconds: %d- Day: %d- Date: %d- Month: %d- Year: %d- AM/PM: %d- Epoch time: %ld\r\n", time_ds1307.hours,
+              time_ds1307.minutes, time_ds1307.seconds, time_ds1307.day, time_ds1307.date, time_ds1307.month, time_ds1307.year, time_ds1307.am_pm, time_epoch);
       HAL_UART_Transmit(&huart2, (uint8_t *) RX, sizeof(RX), 100);
       HAL_Delay(1000);
     }
@@ -207,6 +231,70 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+ * @brief I2C2 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_I2C2_Init(void)
+{
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance             = I2C2;
+  hi2c2.Init.ClockSpeed      = 100000;
+  hi2c2.Init.DutyCycle       = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1     = 0;
+  hi2c2.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2     = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
+}
+
+/**
+ * @brief I2C3 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_I2C3_Init(void)
+{
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance             = I2C3;
+  hi2c3.Init.ClockSpeed      = 100000;
+  hi2c3.Init.DutyCycle       = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1     = 0;
+  hi2c3.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2     = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
+}
+
+/**
  * @brief USART2 Initialization Function
  * @param None
  * @retval None
@@ -248,6 +336,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 }
 
 /* USER CODE BEGIN 4 */

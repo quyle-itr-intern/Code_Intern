@@ -37,13 +37,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  0002188a  00000000  00000000  0002e120  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000c496  00000000  00000000  0004f9aa  2**0
+ 17 .debug_line   0000c492  00000000  00000000  0004f9aa  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000c9399  00000000  00000000  0005be40  2**0
+ 18 .debug_str    000c9399  00000000  00000000  0005be3c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  001251d9  2**0
+ 19 .comment      00000050  00000000  00000000  001251d5  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  000021b4  00000000  00000000  0012522c  2**2
+ 20 .debug_frame  000021b4  00000000  00000000  00125228  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1653,17 +1653,17 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000cf6:	6078      	str	r0, [r7, #4]
  8000cf8:	460b      	mov	r3, r1
  8000cfa:	70fb      	strb	r3, [r7, #3]
-	uint8_t u8count_array = 0U;
+  uint8_t u8count_array = 0U;
  8000cfc:	2300      	movs	r3, #0
  8000cfe:	f887 302f 	strb.w	r3, [r7, #47]	; 0x2f
-	uint8_t u8temp_buffer[32];
+  uint8_t u8temp_buffer[32];
 
-    for(uint8_t u8Count = 0U; u8Count < u8length; u8Count++)
+  for(uint8_t u8Count = 0U; u8Count < u8length; u8Count++)
  8000d02:	2300      	movs	r3, #0
  8000d04:	f887 302e 	strb.w	r3, [r7, #46]	; 0x2e
  8000d08:	e05e      	b.n	8000dc8 <parse_element+0xd8>
-    {
-        if(buff[u8Count] >= '0' && buff[u8Count] <= '9')
+  {
+	if(buff[u8Count] >= '0' && buff[u8Count] <= '9')
  8000d0a:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000d0e:	687a      	ldr	r2, [r7, #4]
  8000d10:	4413      	add	r3, r2
@@ -1676,8 +1676,8 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000d20:	781b      	ldrb	r3, [r3, #0]
  8000d22:	2b39      	cmp	r3, #57	; 0x39
  8000d24:	d80d      	bhi.n	8000d42 <parse_element+0x52>
-        {
-        	u8temp_buffer[u8Count] = buff[u8Count] - 48;
+	{
+      u8temp_buffer[u8Count] = buff[u8Count] - 48;
  8000d26:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000d2a:	687a      	ldr	r2, [r7, #4]
  8000d2c:	4413      	add	r3, r2
@@ -1689,8 +1689,8 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000d3a:	443b      	add	r3, r7
  8000d3c:	f803 2c24 	strb.w	r2, [r3, #-36]
  8000d40:	e01a      	b.n	8000d78 <parse_element+0x88>
-        }
-        else if(buff[u8Count] >= 'A' && buff[u8Count] <= 'F')
+	}
+	else if(buff[u8Count] >= 'A' && buff[u8Count] <= 'F')
  8000d42:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000d46:	687a      	ldr	r2, [r7, #4]
  8000d48:	4413      	add	r3, r2
@@ -1703,8 +1703,8 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000d58:	781b      	ldrb	r3, [r3, #0]
  8000d5a:	2b46      	cmp	r3, #70	; 0x46
  8000d5c:	d83a      	bhi.n	8000dd4 <parse_element+0xe4>
-        {
-        	u8temp_buffer[u8Count] = buff[u8Count] - 65 + 10;
+	{
+	  u8temp_buffer[u8Count] = buff[u8Count] - 65 + 10;
  8000d5e:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000d62:	687a      	ldr	r2, [r7, #4]
  8000d64:	4413      	add	r3, r2
@@ -1715,19 +1715,18 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000d70:	3330      	adds	r3, #48	; 0x30
  8000d72:	443b      	add	r3, r7
  8000d74:	f803 2c24 	strb.w	r2, [r3, #-36]
-        else
-        {
-           return;
-        }
+	}
+	else
+	 return;
 
-        if(u8Count % 2 != 0)
+    if(u8Count % 2 != 0)
  8000d78:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000d7c:	f003 0301 	and.w	r3, r3, #1
  8000d80:	b2db      	uxtb	r3, r3
  8000d82:	2b00      	cmp	r3, #0
  8000d84:	d01b      	beq.n	8000dbe <parse_element+0xce>
-        {
-            cInternalBufferData[u8count_array] = ((u8temp_buffer[u8Count - 1] << 4) | (u8temp_buffer[u8Count]));
+	{
+	  cInternalBufferData[u8count_array] = ((u8temp_buffer[u8Count - 1] << 4) | (u8temp_buffer[u8Count]));
  8000d86:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000d8a:	3b01      	subs	r3, #1
  8000d8c:	3330      	adds	r3, #48	; 0x30
@@ -1746,11 +1745,11 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000dae:	b2d1      	uxtb	r1, r2
  8000db0:	4a0b      	ldr	r2, [pc, #44]	; (8000de0 <parse_element+0xf0>)
  8000db2:	54d1      	strb	r1, [r2, r3]
-            u8count_array++;
+	  u8count_array++;
  8000db4:	f897 302f 	ldrb.w	r3, [r7, #47]	; 0x2f
  8000db8:	3301      	adds	r3, #1
  8000dba:	f887 302f 	strb.w	r3, [r7, #47]	; 0x2f
-    for(uint8_t u8Count = 0U; u8Count < u8length; u8Count++)
+  for(uint8_t u8Count = 0U; u8Count < u8length; u8Count++)
  8000dbe:	f897 302e 	ldrb.w	r3, [r7, #46]	; 0x2e
  8000dc2:	3301      	adds	r3, #1
  8000dc4:	f887 302e 	strb.w	r3, [r7, #46]	; 0x2e
@@ -1759,10 +1758,10 @@ void parse_element(uint8_t *buff, uint8_t u8length)
  8000dce:	429a      	cmp	r2, r3
  8000dd0:	d39b      	bcc.n	8000d0a <parse_element+0x1a>
  8000dd2:	e000      	b.n	8000dd6 <parse_element+0xe6>
-           return;
+	 return;
  8000dd4:	bf00      	nop
-        }
-    }
+	}
+  }
 }
  8000dd6:	3734      	adds	r7, #52	; 0x34
  8000dd8:	46bd      	mov	sp, r7

@@ -10,6 +10,7 @@
         "bsp_ds1307.h": "c",
         "bsp_mfrc522.h": "c",
         "bootloader.h": "c",
-        "bootloader_handle.h": "c"
+        "bootloader_handle.h": "c",
+        "stm32f4xx_hal.h": "c"
     }
 }

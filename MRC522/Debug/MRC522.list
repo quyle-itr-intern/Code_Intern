@@ -27,23 +27,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  0002000c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0000b745  00000000  00000000  0002003c  2**0
+ 12 .debug_info   0000b828  00000000  00000000  0002003c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00001b89  00000000  00000000  0002b781  2**0
+ 13 .debug_abbrev 00001bab  00000000  00000000  0002b864  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000970  00000000  00000000  0002d310  2**3
+ 14 .debug_aranges 00000980  00000000  00000000  0002d410  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_ranges 000008b8  00000000  00000000  0002dc80  2**3
+ 15 .debug_ranges 000008c8  00000000  00000000  0002dd90  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00020f26  00000000  00000000  0002e538  2**0
+ 16 .debug_macro  00020f26  00000000  00000000  0002e658  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0000d4ef  00000000  00000000  0004f45e  2**0
+ 17 .debug_line   0000d5d5  00000000  00000000  0004f57e  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000c7052  00000000  00000000  0005c94d  2**0
+ 18 .debug_str    000c70ad  00000000  00000000  0005cb53  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  0012399f  2**0
+ 19 .comment      00000050  00000000  00000000  00123c00  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000259c  00000000  00000000  001239f0  2**2
+ 20 .debug_frame  000025e8  00000000  00000000  00123c50  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1132,6 +1132,9 @@ bsp_mfrc522_status_t bsp_mfrc522_haft(void)
  80009a2:	bd80      	pop	{r7, pc}
 
 080009a4 <bsp_mfrc522_antenna_on>:
+  }
+  return status;
+}
 
 bsp_mfrc522_status_t bsp_mfrc522_antenna_on(void)
 {

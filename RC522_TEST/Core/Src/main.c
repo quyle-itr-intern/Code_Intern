@@ -1,29 +1,27 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * @file           : main.c
- * @brief          : Main program body
- ******************************************************************************
- * @attention
- *
- * Copyright (c) 2023 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2023 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "drv_mfrc522.h"
-#include <string.h>
-#include <stdio.h>
+#include "driver_mfrc522.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,10 +60,6 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t data[15];
 
-char TX[50];
-drv_mfrc522_info_t mfrc522;
-drv_mfrc522_config_t drv_mfrc522;
-
 /* USER CODE END 0 */
 
 /**
@@ -99,20 +93,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  drv_mfrc522.drv_mfrc522_spi = &hspi1;
-  drv_mfrc522.drv_mfrc522_id = 1;
-  drv_mfrc522.drv_mfrc522_cs_port = GPIOA;
-  drv_mfrc522.drv_mfrc522_cs_pin = GPIO_PIN_0;
-
-  sprintf(TX, "Status Config: %d\r\n", drv_mfrc522_init(&drv_mfrc522));
-
-  HAL_UART_Transmit(&huart2, (uint8_t*) TX, strlen(TX), 100);
-
-//  uint8_t send_data[] = "Hello World";
-//  sprintf(TX, "Status Write: %d\r\n", drv_mfrc522_write_address(drv_mfrc522, 1, send_data));
-//  HAL_UART_Transmit(&huart2, (uint8_t*) TX, strlen(TX), 100);
-
+  drv_mfrc522_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,10 +103,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if( drv_mfrc522_read_id_card(drv_mfrc522, data) == drv_mfrc522_error)
-    	HAL_UART_Transmit(&huart2, (uint8_t*) "Error\r\n", 7, 100);
+	  if( drv_mfrc522_read_id_card(data) == drv_mfrc522_ok)
+	     	HAL_UART_Transmit(&huart2, (uint8_t*) "Error\r\n", 7, 100);
 
-    HAL_Delay(1000);
+	     HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -268,13 +249,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }

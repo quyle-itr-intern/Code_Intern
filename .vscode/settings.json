@@ -11,6 +11,9 @@
         "bsp_mfrc522.h": "c",
         "bootloader.h": "c",
         "bootloader_handle.h": "c",
-        "stm32f4xx_hal.h": "c"
+        "stm32f4xx_hal.h": "c",
+        "drv_mfrc522.h": "c",
+        "string.h": "c",
+        "bsp_gpio.h": "c"
     }
 }

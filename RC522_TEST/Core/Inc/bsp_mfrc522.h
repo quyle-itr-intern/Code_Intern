@@ -126,55 +126,9 @@ typedef enum
 }
 bsp_mfrc522_status_t;
 
-typedef struct
-{
-  /* Page: 0 */
-  uint8_t command_reg;
-  uint8_t com_ien_reg;
-  uint8_t div_ien_reg;
-  uint8_t com_irq_reg;
-  uint8_t div_irq_reg;
-  uint8_t error_reg;
-  uint8_t status1_reg;
-  uint8_t status2_reg;
-  uint8_t fifo_data_reg;
-  uint8_t fifo_level_reg;
-  uint8_t water_level_reg;
-  uint8_t control_reg;
-  uint8_t bit_framing_reg;
-  uint8_t coll_reg;
-  /* Page: 1 */
-  uint8_t mode_reg;
-  uint8_t tx_mode_reg;
-  uint8_t rx_mode_reg;
-  uint8_t tx_control_reg;
-  uint8_t tx_ask_reg;
-  uint8_t tx_sel_reg;
-  uint8_t rx_sel_reg;
-  uint8_t rx_threshold_reg;
-  uint8_t demod_reg;
-  uint8_t mf_tx_reg;
-  uint8_t mf_rx_reg;
-  uint8_t serial_speed_reg;
-  /* Page:2 */
-  uint8_t crc_result_reg[2];
-  uint8_t mod_width_reg;
-  uint8_t rf_cfg_reg;
-  uint8_t gsn_reg;
-  uint8_t cwgs_preg;
-  uint8_t modgs_preg;
-  uint8_t t_mode_reg;
-  uint8_t t_prescaler_reg;
-  uint8_t t_reload_reg[2];
-  uint8_t t_countervalue_reg[2];
-} 
-bsp_mfrc522_info_t;
-
 bsp_mfrc522_status_t bsp_mfrc522_init(void);
 
 bsp_mfrc522_status_t bsp_mfrc522_check_card_type(uint8_t *card_type);
-
-bsp_mfrc522_status_t bsp_mfrc522_read_all(bsp_mfrc522_info_t *mfrc522_info);
 
 bsp_mfrc522_status_t bsp_mfrc522_read_id(uint8_t *card_type);
 

@@ -22,6 +22,7 @@
 *.a
 *.la
 *.lo
+*.mk
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -57,3 +58,4 @@ dkms.conf
 /.metadata
 *.mk
 **/Debug
+[Dd]ebug

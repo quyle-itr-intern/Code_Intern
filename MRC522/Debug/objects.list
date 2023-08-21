@@ -1,5 +1,6 @@
-"./Core/Src/bsp_mfrc522.o"
-"./Core/Src/driver_mfrc522.o"
+"./Core/Src/bsp_gpio.o"
+"./Core/Src/bsp_spi.o"
+"./Core/Src/drv_mfrc522.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"

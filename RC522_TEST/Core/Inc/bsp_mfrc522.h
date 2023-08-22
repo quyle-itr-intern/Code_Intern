@@ -140,4 +140,6 @@ bsp_mfrc522_status_t bsp_mfrc522_request(uint8_t request_mode, uint8_t *tag_type
 
 bsp_mfrc522_status_t bsp_mfrc522_haft(void);
 
+bsp_mfrc522_status_t bsp_mfrc522_write_address(uint8_t block_address, uint8_t *send_data);
+
 #endif

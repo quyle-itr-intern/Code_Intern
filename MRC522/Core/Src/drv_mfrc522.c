@@ -21,7 +21,7 @@ static uint8_t _status = 0;
 
 /* Private defines ---------------------------------------------------- */
 
-#define DRV_DS1307_CHECK_ID(x)               \
+#define DRV_MFRC522_CHECK_ID(x)              \
   if ((x < 0) || (x > 7))                    \
     return drv_mfrc522_invalid_id;           \
   if (((1 << (x)) & drv_mfrc522_initialize)) \
@@ -31,7 +31,7 @@ static uint8_t _status = 0;
   if (!((1 << (x)) & drv_mfrc522_initialize)) \
     return drv_mfrc522_no_init;
 
-#define DRV_DS1307_CHECK_SPI(x)               \
+#define DRV_MFRC522_CHECK_SPI(x)              \
   if ((drv_mfrc522->drv_mfrc522_spi) == NULL) \
     return drv_mfrc522_invalid_parameter;
 
@@ -94,15 +94,12 @@ static drv_mfrc522_status_t drv_mfrc522_write_reg(drv_mfrc522_config_t drv_mfrc5
   uint8_t reg_value = ((reg_write << 1) & 0x7E);
   bsp_gpio_reset_pin(drv_mfrc522.drv_mfrc522_cs_port, drv_mfrc522.drv_mfrc522_cs_pin);
 
-  // if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI1)
-  //   DRV_MFRC522_CHECK_FAULT(bsp_spi1_write(reg_value, data_write))
-  // else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI2)
-  //   DRV_MFRC522_CHECK_FAULT(bsp_spi2_write(reg_value, data_write))
-  // else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI3)
-  //   DRV_MFRC522_CHECK_FAULT(bsp_spi3_write(reg_value, data_write))
-
-  HAL_SPI_Transmit(drv_mfrc522.drv_mfrc522_spi, &reg_value, 1, 500);
-  HAL_SPI_Transmit(drv_mfrc522.drv_mfrc522_spi, &data_write, 1, 500);
+  if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI1)
+    DRV_MFRC522_CHECK_FAULT(bsp_spi1_write(reg_value, data_write))
+  else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI2)
+    DRV_MFRC522_CHECK_FAULT(bsp_spi2_write(reg_value, data_write))
+  else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI3)
+    DRV_MFRC522_CHECK_FAULT(bsp_spi3_write(reg_value, data_write))
 
   bsp_gpio_set_pin(drv_mfrc522.drv_mfrc522_cs_port, drv_mfrc522.drv_mfrc522_cs_pin);
   return drv_mfrc522_success;
@@ -116,15 +113,12 @@ static drv_mfrc522_status_t drv_mfrc522_read_reg(drv_mfrc522_config_t drv_mfrc52
   uint8_t reg_value = (((reg_read << 1) & 0x7E) | 0x80);
   bsp_gpio_reset_pin(drv_mfrc522.drv_mfrc522_cs_port, drv_mfrc522.drv_mfrc522_cs_pin);
 
-  // if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI1)
-  //   DRV_MFRC522_CHECK_FAULT(bsp_spi1_read(reg_value, data_read))
-  // else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI2)
-  //   DRV_MFRC522_CHECK_FAULT(bsp_spi2_read(reg_value, data_read))
-  // else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI3)
-  //   DRV_MFRC522_CHECK_FAULT(bsp_spi3_read(reg_value, data_read))
-
-  HAL_SPI_Transmit(drv_mfrc522.drv_mfrc522_spi, &reg_value, 1, 500);
-  HAL_SPI_Receive(drv_mfrc522.drv_mfrc522_spi, data_read, 1, 500);
+  if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI1)
+    DRV_MFRC522_CHECK_FAULT(bsp_spi1_read(reg_value, data_read))
+  else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI2)
+    DRV_MFRC522_CHECK_FAULT(bsp_spi2_read(reg_value, data_read))
+  else if (drv_mfrc522.drv_mfrc522_spi->Instance == SPI3)
+    DRV_MFRC522_CHECK_FAULT(bsp_spi3_read(reg_value, data_read))
 
   bsp_gpio_set_pin(drv_mfrc522.drv_mfrc522_cs_port, drv_mfrc522.drv_mfrc522_cs_pin);
   return drv_mfrc522_success;
@@ -155,8 +149,8 @@ static drv_mfrc522_status_t drv_mfrc522_set_bit_reg(drv_mfrc522_config_t drv_mfr
 {
   /* Check device init */
   DRV_MFRC522_CHECK_INIT(drv_mfrc522.drv_mfrc522_id);
-  uint8_t value = 0;
-  drv_mfrc522_read_reg(drv_mfrc522, reg, &value);
+  uint8_t value;
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_read_reg(drv_mfrc522, reg, &value))
   return drv_mfrc522_write_reg(drv_mfrc522, reg, value | bit);
 }
 
@@ -164,8 +158,8 @@ static drv_mfrc522_status_t drv_mfrc522_clear_bit_reg(drv_mfrc522_config_t drv_m
 {
   /* Check device init */
   DRV_MFRC522_CHECK_INIT(drv_mfrc522.drv_mfrc522_id);
-  uint8_t value = 0;
-  drv_mfrc522_read_reg(drv_mfrc522, reg, &value);
+  uint8_t value;
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_read_reg(drv_mfrc522, reg, &value))
   return drv_mfrc522_write_reg(drv_mfrc522, reg, value & (~bit));
 }
 
@@ -179,9 +173,9 @@ drv_mfrc522_to_card(drv_mfrc522_config_t drv_mfrc522, uint8_t command, uint8_t *
   uint8_t              irqEn   = 0x00;
   uint8_t              waitIRq = 0x00;
   uint8_t              lastBits;
-  uint8_t              n;
-  uint16_t             i;
-  uint8_t              check;
+  uint8_t              n     = 0;
+  uint16_t             i     = 0;
+  uint8_t              check = 0;
 
   switch (command)
   {
@@ -239,7 +233,6 @@ drv_mfrc522_to_card(drv_mfrc522_config_t drv_mfrc522, uint8_t command, uint8_t *
       {
         status = drv_mfrc522_error;
       }
-
       if (command == DRV_PCD_TRANSCEIVE)
       {
         drv_mfrc522_read_reg(drv_mfrc522, DRV_MFRC522_REG_FIFO_LEVEL, &n);
@@ -266,7 +259,9 @@ drv_mfrc522_to_card(drv_mfrc522_config_t drv_mfrc522, uint8_t command, uint8_t *
         /* reading the received data in FIFO */
         for (i = 0; i < n; i++)
         {
-          drv_mfrc522_read_reg(drv_mfrc522, DRV_MFRC522_REG_FIFO_DATA, &back_data[i]);
+          uint8_t value;
+          drv_mfrc522_read_reg(drv_mfrc522, DRV_MFRC522_REG_FIFO_DATA, &value);
+          back_data[i] = value;
         }
       }
     }
@@ -274,6 +269,33 @@ drv_mfrc522_to_card(drv_mfrc522_config_t drv_mfrc522, uint8_t command, uint8_t *
     {
       status = drv_mfrc522_error;
     }
+  }
+  return status;
+}
+
+static drv_mfrc522_status_t drv_mfrc522_select_tag(drv_mfrc522_config_t drv_mfrc522, uint8_t *ser_num, uint8_t *data_size)
+{
+  uint8_t              i;
+  drv_mfrc522_status_t status = drv_mfrc522_error;
+  uint16_t             recvBits;
+  uint8_t              buffer[9];
+
+  buffer[0] = DRV_PICC_SElECTTAG;
+  buffer[1] = 0x70;
+  for (i = 0; i < 5; i++)
+  {
+    buffer[i + 2] = *(ser_num + i);
+  }
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_calculate_crc(drv_mfrc522, buffer, 7, &buffer[7]))
+  status = drv_mfrc522_to_card(drv_mfrc522, DRV_PCD_TRANSCEIVE, buffer, 9, buffer, &recvBits);
+
+  if ((status == drv_mfrc522_success) && (recvBits == 0x18))
+  {
+    *data_size = buffer[0];
+  }
+  else
+  {
+    *data_size = 0;
   }
   return status;
 }
@@ -308,7 +330,7 @@ static drv_mfrc522_status_t drv_mfrc522_anticoll(drv_mfrc522_config_t drv_mfrc52
   uint8_t              num_check = 0;
   uint16_t             len;
 
-  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(drv_mfrc522, DRV_MFRC522_REG_BIT_FRAMING, 0x00));
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(drv_mfrc522, DRV_MFRC522_REG_BIT_FRAMING, 0x00))
 
   data[0] = DRV_PICC_ANTICOLL;
   data[1] = 0x20;
@@ -342,9 +364,9 @@ static drv_mfrc522_status_t drv_mfrc522_calculate_crc(drv_mfrc522_config_t drv_m
   /* writing data to the FIFO */
   for (i = 0; i < len; i++)
   {
-    DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(drv_mfrc522, DRV_MFRC522_REG_FIFO_DATA, *(data_in + i)));
+    DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(drv_mfrc522, DRV_MFRC522_REG_FIFO_DATA, *(data_in + i)))
   }
-  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(drv_mfrc522, DRV_MFRC522_REG_COMMAND, DRV_PCD_CALCCRC));
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(drv_mfrc522, DRV_MFRC522_REG_COMMAND, DRV_PCD_CALCCRC))
 
   i = 0xFF;
   do
@@ -373,13 +395,64 @@ static drv_mfrc522_status_t drv_mfrc522_haft(drv_mfrc522_config_t drv_mfrc522)
   return drv_mfrc522_to_card(drv_mfrc522, DRV_PCD_TRANSCEIVE, buff, 4, buff, &len);
 }
 
+static drv_mfrc522_status_t drv_mfrc522_auth(drv_mfrc522_config_t drv_mfrc522, uint8_t auth_mode, uint8_t block_address, uint8_t *sector_key, uint8_t *ser_num)
+{
+  drv_mfrc522_status_t status = drv_mfrc522_error;
+  uint16_t             recvBits;
+  uint8_t              i;
+  uint8_t              buff[12];
+
+  // Verify the command block address + sector + password + card serial number
+  buff[0] = auth_mode;
+  buff[1] = block_address;
+  for (i = 0; i < 6; i++)
+  {
+    buff[i + 2] = *(sector_key + i);
+  }
+  for (i = 0; i < 4; i++)
+  {
+    buff[i + 8] = *(ser_num + i);
+  }
+  status = drv_mfrc522_to_card(drv_mfrc522, DRV_PCD_AUTHENT, buff, 12, buff, &recvBits);
+  uint8_t status_2;
+  drv_mfrc522_read_reg(drv_mfrc522, DRV_MFRC522_REG_STATUS2, &status_2);
+  if ((status != drv_mfrc522_success) || (!(status_2 & 0x08)))
+  {
+    status = drv_mfrc522_error;
+  }
+  return status;
+}
+
 drv_mfrc522_status_t drv_mfrc522_read_address(drv_mfrc522_config_t drv_mfrc522, uint8_t block_address, uint8_t *receive_data)
 {
   /* Check device init */
   DRV_MFRC522_CHECK_INIT(drv_mfrc522.drv_mfrc522_id);
-
   drv_mfrc522_status_t status;
   uint16_t             len;
+  uint8_t              data[5];
+  uint8_t              sector_key[6];
+
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_request(drv_mfrc522, DRV_PICC_REQIDL, data))
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_anticoll(drv_mfrc522, data))
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_select_tag(drv_mfrc522, data, &status))
+
+  if (status > 0)
+  {
+    sector_key[0] = 0xFF;
+    sector_key[1] = 0xFF;
+    sector_key[2] = 0xFF;
+    sector_key[3] = 0xFF;
+    sector_key[4] = 0xFF;
+    sector_key[5] = 0xFF;
+    DRV_MFRC522_CHECK_STATUS(drv_mfrc522_auth(drv_mfrc522, 0x60, block_address, sector_key, data))
+  }
+  else
+  {
+    drv_mfrc522_clear_bit_reg(drv_mfrc522, DRV_MFRC522_REG_STATUS2, 0x08);
+    drv_mfrc522_haft(drv_mfrc522);
+    return drv_mfrc522_error;
+  }
+
   receive_data[0] = DRV_PICC_READ;
   receive_data[1] = block_address;
   DRV_MFRC522_CHECK_STATUS(drv_mfrc522_calculate_crc(drv_mfrc522, receive_data, 2, &receive_data[2]));
@@ -389,6 +462,8 @@ drv_mfrc522_status_t drv_mfrc522_read_address(drv_mfrc522_config_t drv_mfrc522, 
   {
     status = drv_mfrc522_error;
   }
+  drv_mfrc522_clear_bit_reg(drv_mfrc522, DRV_MFRC522_REG_STATUS2, 0x08);
+  drv_mfrc522_haft(drv_mfrc522);
   return status;
 }
 
@@ -396,16 +471,72 @@ drv_mfrc522_status_t drv_mfrc522_write_address(drv_mfrc522_config_t drv_mfrc522,
 {
   /* Check device init */
   DRV_MFRC522_CHECK_INIT(drv_mfrc522.drv_mfrc522_id);
-
   drv_mfrc522_status_t status = drv_mfrc522_error;
   uint16_t             receive_bits;
   uint8_t              i;
   uint8_t              buff[18];
+  uint8_t              data[5];
+  uint8_t              sector_key[6];
+  uint8_t              addr_special = 0;
 
-  buff[0] = DRV_PICC_WRITE;
-  buff[1] = block_address;
-  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_calculate_crc(drv_mfrc522, buff, 2, &buff[2]))
-  status = drv_mfrc522_to_card(drv_mfrc522, DRV_PCD_TRANSCEIVE, buff, 4, buff, &receive_bits);
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_request(drv_mfrc522, DRV_PICC_REQIDL, data))
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_anticoll(drv_mfrc522, data))
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_select_tag(drv_mfrc522, data, &status))
+
+  if (status > 0)
+  {
+    sector_key[0] = 0xFF;
+    sector_key[1] = 0xFF;
+    sector_key[2] = 0xFF;
+    sector_key[3] = 0xFF;
+    sector_key[4] = 0xFF;
+    sector_key[5] = 0xFF;
+    DRV_MFRC522_CHECK_STATUS(drv_mfrc522_auth(drv_mfrc522, 0x60, block_address, sector_key, data))
+  }
+  else
+  {
+    return drv_mfrc522_error;
+  }
+
+  for (i = 3; i < 64; i += 4)
+  {
+    if (i == block_address)
+    {
+      addr_special = 1;
+      break;
+    }
+  }
+  if (addr_special)
+  {
+    buff[0]  = 0xFF;
+    buff[1]  = 0xFF;
+    buff[2]  = 0xFF;
+    buff[3]  = 0xFF;
+    buff[4]  = 0xFF;
+    buff[5]  = 0xFF;
+    buff[6]  = 0xFF;          // Access_bits[6]
+    buff[7]  = 0x07;          // Access_bits[7]
+    buff[8]  = 0x80;          // Access_bits[8]
+    buff[9]  = send_data[0];  // user_byte[9]
+    buff[10] = send_data[1];  // user_byte[10]
+    buff[11] = send_data[2];  // user_byte[11]
+    buff[12] = send_data[3];  // user_byte[12]
+    buff[13] = send_data[4];  // user_byte[13]
+    buff[14] = send_data[5];  // user_byte[14]
+    buff[15] = send_data[6];  // user_byte[15]
+  }
+  else
+  {
+    for (i = 0; i < 16; i++)
+    {
+      buff[i] = *(send_data + i);
+    }
+  }
+
+  data[0] = DRV_PICC_WRITE;
+  data[1] = block_address;
+  DRV_MFRC522_CHECK_STATUS(drv_mfrc522_calculate_crc(drv_mfrc522, data, 2, &data[2]))
+  status = drv_mfrc522_to_card(drv_mfrc522, DRV_PCD_TRANSCEIVE, data, 4, data, &receive_bits);
 
   if ((status != drv_mfrc522_success))
   {
@@ -413,10 +544,6 @@ drv_mfrc522_status_t drv_mfrc522_write_address(drv_mfrc522_config_t drv_mfrc522,
   }
   if (status == drv_mfrc522_success)
   {
-    for (i = 0; i < 16; i++)
-    {
-      buff[i] = *(send_data + i);
-    }
     DRV_MFRC522_CHECK_STATUS(drv_mfrc522_calculate_crc(drv_mfrc522, buff, 16, &buff[16]))
     status = drv_mfrc522_to_card(drv_mfrc522, DRV_PCD_TRANSCEIVE, buff, 18, buff, &receive_bits);
 
@@ -425,6 +552,7 @@ drv_mfrc522_status_t drv_mfrc522_write_address(drv_mfrc522_config_t drv_mfrc522,
       status = drv_mfrc522_error;
     }
   }
+  drv_mfrc522_haft(drv_mfrc522);
   return status;
 }
 
@@ -440,8 +568,8 @@ static drv_mfrc522_status_t drv_mfrc522_antenna_on(drv_mfrc522_config_t drv_mfrc
 
 drv_mfrc522_status_t drv_mfrc522_init(drv_mfrc522_config_t *drv_mfrc522)
 {
-  DRV_DS1307_CHECK_ID(drv_mfrc522->drv_mfrc522_id);
-  DRV_DS1307_CHECK_SPI(drv_mfrc522->drv_mfrc522_spi);
+  DRV_MFRC522_CHECK_ID(drv_mfrc522->drv_mfrc522_id);
+  DRV_MFRC522_CHECK_SPI(drv_mfrc522->drv_mfrc522_spi);
 
   if (drv_mfrc522->drv_mfrc522_spi->Instance == SPI1)
     DRV_MFRC522_CHECK_FAULT(bsp_spi1_init(drv_mfrc522->drv_mfrc522_spi))
@@ -456,7 +584,7 @@ drv_mfrc522_status_t drv_mfrc522_init(drv_mfrc522_config_t *drv_mfrc522)
 
   /* Reset the Mifare Classic and NTAG devices */
   DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(*drv_mfrc522, DRV_MFRC522_REG_COMMAND, DRV_PCD_RESETPHASE))
-
+  HAL_Delay(1);
   DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(*drv_mfrc522, DRV_MFRC522_REG_T_MODE, 0x8D))
   DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(*drv_mfrc522, DRV_MFRC522_REG_T_PRESCALER, 0x3E))
   DRV_MFRC522_CHECK_STATUS(drv_mfrc522_write_reg(*drv_mfrc522, DRV_MFRC522_REG_T_RELOAD_L, 30))

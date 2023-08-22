@@ -25,7 +25,7 @@
 /* Public defines ----------------------------------------------------- */
 
 /* MFRC522 Commands */
-#define DRV_PCD_IDLE                      (0x00)  // NO action; Cancel the current command
+#define DRV_PCD_IDLE                      (0x00)  // No action; Cancel the current command
 #define DRV_PCD_AUTHENT                   (0x0E)  // Authentication Key
 #define DRV_PCD_RECEIVE                   (0x08)  // Receive Data
 #define DRV_PCD_TRANSMIT                  (0x04)  // Transmit data
@@ -124,6 +124,9 @@
 
 /* Public enumerate/structure ----------------------------------------- */
 
+/**
+ * @brief  Structure for drv mfrc522 status
+ */
 typedef enum
 {
   drv_mfrc522_error = 0,
@@ -135,6 +138,9 @@ typedef enum
   drv_mfrc522_invalid_parameter,
 } drv_mfrc522_status_t;
 
+/**
+ * @brief  Structure for all register mfrc522
+ */
 typedef struct
 {
   /* Page: 0 */
@@ -178,6 +184,9 @@ typedef struct
   uint8_t t_countervalue_reg[2];
 } drv_mfrc522_info_t;
 
+/**
+ * @brief  Structure for info drv mfrc522
+ */
 typedef struct
 {
   SPI_HandleTypeDef *drv_mfrc522_spi;
@@ -192,13 +201,104 @@ typedef struct
 
 /* Public function prototypes ----------------------------------------- */
 
+/**
+ * @brief drv_mfrc522_init
+ *
+ * This function init mfrc522
+ *
+ * @param drv_mfrc522 struct data config mfrc522 device
+ *
+ * @return
+ *    - 0 : drv_mfrc522_error,
+ *    - 1 : drv_mfrc522_success,
+ *    - 2 : drv_mfrc522_invalid_id,
+ *    - 3 : drv_mfrc522_id_exist,
+ *    - 4 : drv_mfrc522_spi_no_init,
+ *    - 5 : drv_mfrc522_no_init,
+ *    - 6 : drv_mfrc522_invalid_parameter,
+ */
 drv_mfrc522_status_t drv_mfrc522_init(drv_mfrc522_config_t *drv_mfrc522);
 
+/**
+ * @brief drv_mfrc522_write_address
+ *
+ * This function write data to memory tag
+ *
+ * @param drv_mfrc522   struct data config mfrc522 device
+ * @param block_address block address write memory
+ * @param send_data     pointer data write to memory
+ * 
+ * @attention address special maximum 6 bytes data, remain maximum 16 bytes on block memory
+ *
+ * @return
+ *    - 0 : drv_mfrc522_error,
+ *    - 1 : drv_mfrc522_success,
+ *    - 2 : drv_mfrc522_invalid_id,
+ *    - 3 : drv_mfrc522_id_exist,
+ *    - 4 : drv_mfrc522_spi_no_init,
+ *    - 5 : drv_mfrc522_no_init,
+ *    - 6 : drv_mfrc522_invalid_parameter,
+ */
 drv_mfrc522_status_t drv_mfrc522_write_address(drv_mfrc522_config_t drv_mfrc522, uint8_t block_address, uint8_t *send_data);
 
+/**
+ * @brief drv_mfrc522_read_address
+ *
+ * This function read data from memory tag
+ *
+ * @param drv_mfrc522   struct data config mfrc522 device
+ * @param block_address block address read memory
+ * @param send_data     pointer data read from memory
+ *
+ * @return
+ *    - 0 : drv_mfrc522_error,
+ *    - 1 : drv_mfrc522_success,
+ *    - 2 : drv_mfrc522_invalid_id,
+ *    - 3 : drv_mfrc522_id_exist,
+ *    - 4 : drv_mfrc522_spi_no_init,
+ *    - 5 : drv_mfrc522_no_init,
+ *    - 6 : drv_mfrc522_invalid_parameter,
+ */
 drv_mfrc522_status_t drv_mfrc522_read_address(drv_mfrc522_config_t drv_mfrc522, uint8_t block_address, uint8_t *receive_data);
 
+/**
+ * @brief drv_mfrc522_init
+ *
+ * This function init mfrc522
+ *
+ * @param drv_mfrc522   struct data config mfrc522 device
+ * @param block_address block address read memory
+ * @param send_data     pointer data read from memory
+ *
+ * @return
+ *    - 0 : drv_mfrc522_error,
+ *    - 1 : drv_mfrc522_success,
+ *    - 2 : drv_mfrc522_invalid_id,
+ *    - 3 : drv_mfrc522_id_exist,
+ *    - 4 : drv_mfrc522_spi_no_init,
+ *    - 5 : drv_mfrc522_no_init,
+ *    - 6 : drv_mfrc522_invalid_parameter,
+ */
 drv_mfrc522_status_t drv_mfrc522_read_id_card(drv_mfrc522_config_t drv_mfrc522, uint8_t *card_id);
+
+/**
+ * @brief drv_mfrc522_read_all
+ *
+ * This function read all register mfrc522
+ *
+ * @param drv_mfrc522   struct data config mfrc522 device
+ * @param mfrc522_info  struct data register mfrc522
+ *
+ * @return
+ *    - 0 : drv_mfrc522_error,
+ *    - 1 : drv_mfrc522_success,
+ *    - 2 : drv_mfrc522_invalid_id,
+ *    - 3 : drv_mfrc522_id_exist,
+ *    - 4 : drv_mfrc522_spi_no_init,
+ *    - 5 : drv_mfrc522_no_init,
+ *    - 6 : drv_mfrc522_invalid_parameter,
+ */
+drv_mfrc522_status_t drv_mfrc522_read_all(drv_mfrc522_config_t drv_mfrc522, drv_mfrc522_info_t *mfrc522_info);
 
 #endif  // __DRV_DS1307_H
 

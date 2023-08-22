@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "bsp_mfrc522.h"
 #include "driver_mfrc522.h"
 /* USER CODE END Includes */
 
@@ -94,6 +95,9 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   drv_mfrc522_init();
+
+  uint8_t send_data[] = "Hello";
+  bsp_mfrc522_write_address(63, send_data);
   /* USER CODE END 2 */
 
   /* Infinite loop */

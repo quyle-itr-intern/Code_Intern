@@ -27,7 +27,28 @@
 
 /* Public function prototypes ----------------------------------------- */
 
+/**
+ * @brief bsp_gpio_set_pin
+ *
+ * This function set pin gpio
+ *
+ * @param bsp_gpio_port     gpio port
+ * @param bsp_gpio_pin      gpio pin
+ *
+ * @return
+ */
 void bsp_gpio_set_pin(GPIO_TypeDef *bsp_gpio_port, uint16_t bsp_gpio_pin);
+
+/**
+ * @brief bsp_gpio_reset_pin
+ *
+ * This function reset pin gpio
+ *
+ * @param bsp_gpio_port     gpio port
+ * @param bsp_gpio_pin      gpio pin
+ *
+ * @return
+ */
 void bsp_gpio_reset_pin(GPIO_TypeDef *bsp_gpio_port, uint16_t bsp_gpio_pin);
 
 #endif  // __BSP_GPIO_H
